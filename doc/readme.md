@@ -268,6 +268,7 @@ Press `Ctrl+I` (or `I` in Quick Action Keys mode) on a post with media attachmen
 * Switched to a fully custom list control, backed by [AccessKit](https://accesskit.dev), to prevent screen readers from rereading the focused item every minute among other things.
 * The followers/following dialogs now properly fetch users from remote instances, and give you progress as they load the lists.
 * The media player dialog will now be properly focused after downloading media.
+* The mentions timeline now has its own entry in the templates and filters dropdowns, so filtering out, for example, replies to you in notifications no longer empties it too.
 * Various little UI tweaks, for example adding accelerators where there previously were none.
 
 ### Version 0.3.1

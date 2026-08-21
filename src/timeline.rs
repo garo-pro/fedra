@@ -116,7 +116,8 @@ impl TimelineType {
 		match self {
 			Self::Home => "Home",
 			Self::List { .. } => "List Timelines",
-			Self::Notifications | Self::Mentions => "Notifications",
+			Self::Notifications => "Notifications",
+			Self::Mentions => "Mentions",
 			Self::Direct => "Direct Messages",
 			Self::Local | Self::InstanceLocal { .. } => "Local",
 			Self::Federated => "Federated",

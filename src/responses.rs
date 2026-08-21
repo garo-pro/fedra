@@ -159,12 +159,12 @@ pub fn process_stream_events(
 							}
 							processed_notification_ids.insert(notification.id.clone());
 						}
-						if notification.status.as_ref().is_none_or(|s| !s.should_hide(&filter_context))
-							&& notification.matches_filter(&timeline_filter, current_user_id)
-						{
-							if notification.kind == "mention" {
-								mention_forwards.push(notification.clone());
-							}
+						let passes_server_filters =
+							notification.status.as_ref().is_none_or(|s| !s.should_hide(&filter_context));
+						if passes_server_filters && notification.kind == "mention" {
+							mention_forwards.push(notification.clone());
+						}
+						if passes_server_filters && notification.matches_filter(&timeline_filter, current_user_id) {
 							timeline.entries.insert(0, TimelineEntry::Notification(Box::new(*notification)));
 							if is_active {
 								active_needs_update = true;
@@ -203,11 +203,13 @@ pub fn process_stream_events(
 		}
 	}
 	if !mention_forwards.is_empty() {
+		let mentions_filter = state.config.filters.resolve(TimelineType::Mentions.template_key());
+		let current_user_id = state.current_user_id.as_deref();
 		if let Some(mentions_tl) = state.timeline_manager.get_mut(&TimelineType::Mentions) {
 			let existing_ids: std::collections::HashSet<String> =
 				mentions_tl.entries.iter().map(|e| e.id().to_string()).collect();
 			for notif in mention_forwards {
-				if !existing_ids.contains(&notif.id) {
+				if !existing_ids.contains(&notif.id) && notif.matches_filter(&mentions_filter, current_user_id) {
 					mentions_tl.entries.insert(0, TimelineEntry::Notification(notif));
 				}
 			}
