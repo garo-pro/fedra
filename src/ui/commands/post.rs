@@ -678,6 +678,13 @@ pub(super) fn play_media(ctx: &mut UiCommandContext<'_>) {
 		return;
 	};
 	let target = status.reblog.as_ref().map_or(status, std::convert::AsRef::as_ref);
+	// A quote post's own media_attachments only cover media attached directly
+	// to it; media on the post it quotes lives on the quoted status instead.
+	let target = if target.media_attachments.is_empty() {
+		target.quote.as_ref().and_then(|q| q.quoted_status.as_deref()).unwrap_or(target)
+	} else {
+		target
+	};
 
 	if target.media_attachments.is_empty() {
 		live_region.announce("No media attached to this post");
@@ -721,7 +728,7 @@ pub(super) fn play_media(ctx: &mut UiCommandContext<'_>) {
 		}
 	};
 
-	crate::ui::dialogs::show_media_player(frame, media.url.clone(), state.access_token.clone());
+	crate::ui::dialogs::show_media_player(frame, media.url.clone(), &media.kind, state.access_token.clone());
 }
 
 pub(super) fn view_in_browser(ctx: &mut UiCommandContext<'_>) {
