@@ -6,6 +6,9 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
 jobs:
   build:
     name: Build (${{ matrix.arch }})
@@ -20,9 +23,8 @@ jobs:
             arch: arm64
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
-        submodules: recursive
         fetch-depth: 0
     - name: Setup MSVC
       uses: ilammy/msvc-dev-cmd@v1
@@ -36,6 +38,11 @@ jobs:
     - name: Install CMake, Ninja, and Pandoc
       run: |
         choco install cmake ninja pandoc minisign -y
+    - name: Cache Rust dependencies
+      uses: Swatinem/rust-cache@v2
+      with:
+        key: ${{ matrix.arch }}
+        cache-on-failure: true
     - name: Build
       run: |
         cargo release
@@ -68,7 +75,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         fetch-depth: 0
     - name: Download artifacts
