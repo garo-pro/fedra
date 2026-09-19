@@ -36,10 +36,17 @@ jobs:
           components: clippy
       - name: Install CMake and Ninja
         run: choco install cmake ninja -y
+      # wxdragon-sys builds wxWidgets with CMake into target/<profile>/*_cmake_build,
+      # which rust-cache does not know about. Cache those too, otherwise a hit
+      # restores the build-script fingerprint without the libraries it produced
+      # and the link fails on a missing WebView2LoaderStatic.lib.
       - name: Cache Rust dependencies
         uses: Swatinem/rust-cache@v2
         with:
           cache-on-failure: true
+          cache-directories: |
+            target/debug/wxwidgets_cmake_build
+            target/debug/wxdragon_sys_cmake_build
       # Clippy runs first so the dependency tree is built once, in the same
       # profile the tests then reuse. Checking in release meant compiling
       # everything a second time under LTO for no extra findings.

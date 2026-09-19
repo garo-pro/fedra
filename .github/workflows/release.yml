@@ -37,11 +37,6 @@ jobs:
     - name: Install CMake, Ninja, and Pandoc
       run: |
         choco install cmake ninja pandoc minisign -y
-    - name: Cache Rust dependencies
-      uses: Swatinem/rust-cache@v2
-      with:
-        key: ${{ matrix.arch }}
-        cache-on-failure: true
     - name: Build
       run: |
         cargo release
