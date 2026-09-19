@@ -817,7 +817,7 @@ pub fn prompt_for_compose(
 	let cw_text = TextCtrl::builder(&panel).build();
 	cw_label.show(false);
 	cw_text.show(false);
-	let content_type_label = StaticText::builder(&panel).with_label("Content &type (if supported):").build();
+	let content_type_label = StaticText::builder(&panel).with_label("Content &type:").build();
 	let content_type_options = [
 		("Default".to_string(), None),
 		("Plain text".to_string(), Some("text/plain".to_string())),
