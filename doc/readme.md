@@ -375,6 +375,27 @@ Press `Ctrl+I` (or `I` in Quick Action Keys mode) on a post with media attachmen
 
 ## Changelog
 
+### Version 0.6.0
+* Added a customizable favorite template, with `{{ favoriter }}` and `{{ favoriter_username }}` variables, so favorite notifications no longer force the display name on you.
+* Added a notification types dialog to the general options, letting you choose which kinds of notifications reach you: mentions, boosts, favorites, new followers, follow requests, poll results, edited posts, new posts, and moderation. Everything is on by default.
+* Added a send direct message action to the user actions menu, which opens the compose dialog pre-addressed with direct visibility.
+* Added a turn on/off notifications action to the user actions menu, for people you already follow.
+* Added an image viewer, so image attachments open in a real viewer instead of being handed to the audio player.
+* Added view boosts and view favorites to the post context menu. They were already on the post menu.
+* Attachments with no description are no longer announced as "alt N: (missing)". They are left out of the alt text list instead.
+* Fixed copy post staying greyed out on a thread that holds a single post.
+* Fixed play media reporting no media on a quote post whose media belongs to the quoted post.
+* Fixed quoted posts reading out "RE:" followed by a link when the quoted post was itself a quote.
+* Fixed refreshing a timeline throwing away everything you had loaded with load more, which moved your reading position back to the top.
+* Fixed the auto updater failing with an asset error. It looked for unsuffixed downloads that releases have never published.
+* Fixed the nested quote in a quoted thread looking broken until you refreshed by hand.
+* Fixed timelines never refreshing on instances without working streaming, such as GoToSocial and Iceshrimp.
+* Media playback no longer uses Windows Media Player Legacy. Fedra plays audio with rodio now, so there is no optional Windows feature to install.
+* Removed the enter behavior combo from the shortcuts dialog.
+* Screen readers no longer reread the post you are on when the timeline refreshes in the background, either from new posts arriving or from the timestamp tick. The trade-off is that the relative time on the focused post can lag until you move off it and back.
+* The mentions and sent timelines now have their own post, boost, quote, and favorite templates, and can be filtered on the filters tab.
+* The posts to fetch setting now applies to every fetch, not only to load more. Opening a timeline, restoring your session, refreshing, and searching all honor it.
+
 ### Version 0.5.1
 * Added native ARM64 builds for Windows on ARM devices.
 * Control+enter now sends posts when focused anywhere in the compose dialog.
