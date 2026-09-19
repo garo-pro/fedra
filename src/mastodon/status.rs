@@ -8,7 +8,8 @@ use crate::{
 	config::{ContentWarningDisplay, TimestampFormat},
 	html::strip_html,
 	mastodon::{
-		Account, FilterAction, FilterContext, FilterResult, Poll, Tag, serde_util::deserialize_u64_or_zero,
+		Account, FilterAction, FilterContext, FilterResult, Poll, Tag,
+		serde_util::{deserialize_string_or_none, deserialize_u64_or_zero},
 		time::friendly_time,
 	},
 	template::{PostTemplateVars, render_template},
@@ -24,7 +25,8 @@ pub struct Quote {
 #[derive(Debug, Clone, Deserialize)]
 #[allow(dead_code)]
 pub struct QuoteApproval {
-	pub current_user: String,
+	#[serde(default, deserialize_with = "deserialize_string_or_none")]
+	pub current_user: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -533,5 +535,26 @@ fn count_label(count: u64, singular: &str, plural: &str) -> String {
 		format!("{count} {singular}")
 	} else {
 		format!("{count} {plural}")
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::QuoteApproval;
+
+	fn approval(json: &str) -> QuoteApproval {
+		serde_json::from_str(json).expect("quote_approval should parse")
+	}
+
+	#[test]
+	fn reads_a_string_current_user() {
+		assert_eq!(approval(r#"{"current_user": "denied"}"#).current_user.as_deref(), Some("denied"));
+	}
+
+	#[test]
+	fn tolerates_a_non_string_current_user() {
+		assert_eq!(approval(r#"{"current_user": 5}"#).current_user, None);
+		assert_eq!(approval(r#"{"current_user": null}"#).current_user, None);
+		assert_eq!(approval("{}").current_user, None);
 	}
 }

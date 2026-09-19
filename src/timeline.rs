@@ -277,6 +277,11 @@ pub struct Timeline {
 	pub timeline_type: TimelineType,
 	pub entries: Vec<TimelineEntry>,
 	pub stream_handle: Option<StreamHandle>,
+	/// Whether the WebSocket for this timeline is currently connected. A handle
+	/// exists as soon as the thread spawns, so it says nothing about whether a
+	/// connection ever succeeded; this does, and it decides whether the
+	/// periodic poll has to cover this timeline.
+	pub stream_connected: bool,
 	pub selected_index: Option<usize>,
 	pub selected_id: Option<String>,
 	pub loading_more: bool,
@@ -302,6 +307,7 @@ impl Timeline {
 			timeline_type,
 			entries: Vec::new(),
 			stream_handle: None,
+			stream_connected: false,
 			selected_index: None,
 			selected_id: None,
 			loading_more: false,

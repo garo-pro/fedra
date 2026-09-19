@@ -116,6 +116,7 @@ pub fn switch_to_account(
 		if let Some(old_id) = state.config.active_account_id.clone() {
 			for timeline in state.timeline_manager.iter_mut() {
 				timeline.stream_handle = None;
+				timeline.stream_connected = false;
 			}
 			state.account_timelines.insert(old_id.clone(), std::mem::take(&mut state.timeline_manager));
 			state.account_cw_expanded.insert(old_id, std::mem::take(&mut state.cw_expanded));
@@ -337,6 +338,7 @@ pub fn start_streaming_for_timeline(state: &mut AppState, timeline_type: &Timeli
 		None => return,
 	};
 	let Some(timeline) = state.timeline_manager.get_mut(timeline_type) else { return };
+	timeline.stream_connected = false;
 	timeline.stream_handle =
 		streaming::start_streaming(&base_url, &access_token, timeline_type.clone(), state.ui_waker.clone());
 }

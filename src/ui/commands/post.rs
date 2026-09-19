@@ -376,7 +376,7 @@ pub(super) fn prompt_for_quote(ctx: &mut UiCommandContext<'_>, target: Box<Statu
 	let frame = ctx.frame;
 	let live_region = ctx.live_region;
 	if let Some(approval) = &target.quote_approval
-		&& approval.current_user == "denied"
+		&& approval.current_user.as_deref() == Some("denied")
 	{
 		live_region.announce("You are not allowed to quote this post");
 		return;

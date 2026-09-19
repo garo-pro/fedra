@@ -48,10 +48,15 @@ pub(super) fn refresh_timeline(state: &AppState, live_region: &crate::ui::timeli
 	}
 }
 
+/// Re-fetches timelines whose stream is not currently connected.
+///
+/// A connected stream already delivers everything, so polling it would just be
+/// duplicate traffic. Timelines on instances without working streaming never
+/// report connected, so they are the ones this covers.
 pub(super) fn poll_streamable_timelines(state: &AppState) {
 	let Some(handle) = &state.network_handle else { return };
 	for timeline in state.timeline_manager.timelines() {
-		if timeline.timeline_type.stream_params().is_some() {
+		if !timeline.stream_connected && timeline.timeline_type.stream_params().is_some() {
 			handle.send(NetworkCommand::FetchTimeline {
 				timeline_type: timeline.timeline_type.clone(),
 				limit: Some(u32::from(state.config.fetch_limit)),

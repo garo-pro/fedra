@@ -196,20 +196,53 @@ struct StreamMessage {
 	payload: Option<String>,
 }
 
+/// Deserializes a stream payload, reporting the error instead of swallowing it.
+///
+/// A payload Fedra cannot parse used to vanish without a trace, which reads as
+/// "the stream connects and then never delivers anything" and is impossible to
+/// tell apart from an event deliberately filtered out for this timeline.
+fn parse_payload<T: serde::de::DeserializeOwned>(
+	payload: &str,
+	event: &str,
+	timeline_type: &TimelineType,
+) -> Option<T> {
+	match serde_json::from_str(payload) {
+		Ok(value) => Some(value),
+		Err(e) => {
+			eprintln!(
+				"Failed to parse {event} payload for {}: {e}; payload: {:.400}",
+				timeline_type.display_name(),
+				payload
+			);
+			None
+		}
+	}
+}
+
 fn parse_stream_message(text: &str, timeline_type: &TimelineType) -> Option<StreamEvent> {
-	let msg: StreamMessage = serde_json::from_str(text).ok()?;
+	let msg: StreamMessage = match serde_json::from_str(text) {
+		Ok(msg) => msg,
+		Err(e) => {
+			eprintln!(
+				"Failed to parse stream message for {}: {e}; message: {:.400}",
+				timeline_type.display_name(),
+				text
+			);
+			return None;
+		}
+	};
 	match msg.event.as_str() {
 		"update" => {
 			if matches!(timeline_type, TimelineType::Notifications | TimelineType::Mentions | TimelineType::Direct) {
 				return None;
 			}
 			let payload = msg.payload?;
-			let status: Status = serde_json::from_str(&payload).ok()?;
+			let status: Status = parse_payload(&payload, "update", timeline_type)?;
 			Some(StreamEvent::Update { timeline_type: timeline_type.clone(), status: Box::new(status) })
 		}
 		"status.update" => {
 			let payload = msg.payload?;
-			let status: Status = serde_json::from_str(&payload).ok()?;
+			let status: Status = parse_payload(&payload, "status.update", timeline_type)?;
 			Some(StreamEvent::StatusUpdate { status: Box::new(status) })
 		}
 		"delete" => {
@@ -224,7 +257,7 @@ fn parse_stream_message(text: &str, timeline_type: &TimelineType) -> Option<Stre
 				return None;
 			}
 			let payload = msg.payload?;
-			let notification: Notification = serde_json::from_str(&payload).ok()?;
+			let notification: Notification = parse_payload(&payload, "notification", timeline_type)?;
 			Some(StreamEvent::Notification {
 				timeline_type: timeline_type.clone(),
 				notification: Box::new(notification),
@@ -235,7 +268,7 @@ fn parse_stream_message(text: &str, timeline_type: &TimelineType) -> Option<Stre
 				return None;
 			}
 			let payload = msg.payload?;
-			let conversation: Conversation = serde_json::from_str(&payload).ok()?;
+			let conversation: Conversation = parse_payload(&payload, "conversation", timeline_type)?;
 			Some(StreamEvent::Conversation {
 				timeline_type: timeline_type.clone(),
 				conversation: Box::new(conversation),

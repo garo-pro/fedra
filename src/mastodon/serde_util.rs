@@ -34,3 +34,16 @@ where
 		_ => Ok(None),
 	}
 }
+
+/// Accepts a string, and turns anything else (including null and a missing
+/// field) into `None` rather than failing the whole parent object.
+pub(super) fn deserialize_string_or_none<'de, D>(deserializer: D) -> std::result::Result<Option<String>, D::Error>
+where
+	D: serde::Deserializer<'de>,
+{
+	let val = Value::deserialize(deserializer)?;
+	match val {
+		Value::String(s) => Ok(Some(s)),
+		_ => Ok(None),
+	}
+}

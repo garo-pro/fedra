@@ -144,9 +144,15 @@ pub fn process_stream_events(
 						}
 					}
 				}
-				streaming::StreamEvent::Connected(timeline_type)
-				| streaming::StreamEvent::Disconnected(timeline_type) => {
-					let _ = timeline_type;
+				streaming::StreamEvent::Connected(timeline_type) => {
+					if timeline.timeline_type == timeline_type {
+						timeline.stream_connected = true;
+					}
+				}
+				streaming::StreamEvent::Disconnected(timeline_type) => {
+					if timeline.timeline_type == timeline_type {
+						timeline.stream_connected = false;
+					}
 				}
 			}
 		}
