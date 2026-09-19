@@ -191,7 +191,6 @@ impl MastodonClient {
 	) -> Result<Account> {
 		let url = self.base_url.join("api/v1/accounts/update_credentials")?;
 		let mut form = multipart::Form::new();
-
 		if let Some(v) = display_name {
 			form = form.text("display_name", v.to_string());
 		}
@@ -230,7 +229,6 @@ impl MastodonClient {
 		if let Some(v) = source_language {
 			form = form.text("source[language]", v.to_string());
 		}
-
 		Self::send_json(self.http.patch(url).bearer_auth(access_token).multipart(form), "update credentials")
 	}
 }

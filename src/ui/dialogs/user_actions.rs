@@ -117,7 +117,6 @@ pub fn setup_actions_button(
 		menu.append(ID_ACTION_ADD_TO_LIST, "Add to List...", "", ItemKind::Normal);
 		panel.popup_menu(&mut menu, None);
 	});
-
 	panel.on_menu_selected(move |event| {
 		let id = event.get_id();
 		let account = account.borrow();

@@ -83,7 +83,6 @@ fn build_zip_package(
 	} else {
 		println!("Warning: readme.html not found, skipping.");
 	}
-
 	if sounds_dir.exists() {
 		for entry in WalkDir::new(sounds_dir) {
 			let entry = entry?;
@@ -101,7 +100,6 @@ fn build_zip_package(
 	} else {
 		println!("Warning: sounds directory not found, skipping.");
 	}
-
 	println!("Created zip: {}", package_path.display());
 	Ok(())
 }

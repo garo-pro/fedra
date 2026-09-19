@@ -102,7 +102,6 @@ impl MastodonClient {
 			}
 			let url_part = parts[0].trim().trim_start_matches('<').trim_end_matches('>');
 			let rel_part = parts[1].trim();
-
 			if rel_part.contains("rel=\"next\"")
 				&& let Ok(url) = Url::parse(url_part)
 				&& let Some((_, value)) = url.query_pairs().find(|(key, _)| key == "max_id")

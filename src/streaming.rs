@@ -136,15 +136,11 @@ fn connect_and_stream(
 				last_message_at = Instant::now();
 				let _ = socket.send(Message::Pong(data));
 			}
-			Ok(Message::Pong(_)) => {
-				last_message_at = Instant::now();
-			}
 			Ok(Message::Close(_)) => {
 				return Err("WebSocket closed".to_string());
 			}
 			Ok(_) => {
 				last_message_at = Instant::now();
-				// Ignore other message types (Binary, Pong, Frame)
 			}
 			Err(tungstenite::Error::Io(e))
 				if matches!(e.kind(), std::io::ErrorKind::WouldBlock | std::io::ErrorKind::TimedOut) =>

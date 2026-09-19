@@ -2,6 +2,7 @@ pub mod app_shell;
 pub mod commands;
 pub mod dialogs;
 pub mod ids;
+pub mod keys;
 pub mod menu;
 pub mod timeline_list;
 pub mod timeline_view;

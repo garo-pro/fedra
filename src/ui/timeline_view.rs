@@ -50,14 +50,12 @@ pub fn update_timeline_ui(
 		SortOrder::NewestToOldest => Box::new(entries.iter()),
 		SortOrder::OldestToNewest => Box::new(entries.iter().rev()),
 	};
-
 	let mut list_entries = Vec::with_capacity(entries.len());
 	for entry in iter {
 		let is_expanded = cw_expanded.contains(entry.id());
 		let text = entry.display_text(text_options, is_expanded);
 		list_entries.push((entry_id_to_node_id(entry.id()), text));
 	}
-
 	let selected_node_id = selected_id.map(entry_id_to_node_id);
 	timeline_list.update_entries(&list_entries, selected_node_id);
 }
@@ -159,7 +157,6 @@ pub fn update_active_timeline_ui(
 		with_suppressed_selection(suppress_selection, || {
 			// Apply selection before update so we can pass the correctly calculated selection ID
 			apply_timeline_selection(timeline_list, timeline, effective_sort_order);
-
 			update_timeline_ui(
 				timeline_list,
 				&timeline.entries,

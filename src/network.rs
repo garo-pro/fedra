@@ -619,7 +619,6 @@ fn prepare_thread_timeline(focus: Status, context: StatusContext) -> TimelineDat
 	let mut statuses = context.ancestors;
 	statuses.push(focus);
 	statuses.extend(context.descendants);
-
 	let mut status_map: HashMap<String, Status> = HashMap::new();
 	let mut children_map: HashMap<String, Vec<String>> = HashMap::new();
 	for status in statuses {
@@ -637,13 +636,11 @@ fn prepare_thread_timeline(focus: Status, context: StatusContext) -> TimelineDat
 		let time: Option<DateTime<chrono::Utc>> = s.created_at.parse().ok();
 		(time, s.id.clone())
 	};
-
 	roots.sort_by(|a_id, b_id| {
 		let a = &status_map[a_id];
 		let b = &status_map[b_id];
 		sort_key(a).cmp(&sort_key(b))
 	});
-
 	let mut sorted_statuses: Vec<Status> = Vec::new();
 	let mut visited: HashSet<String> = HashSet::new();
 	let mut stack: Vec<String> = roots;
@@ -652,10 +649,8 @@ fn prepare_thread_timeline(focus: Status, context: StatusContext) -> TimelineDat
 		if !visited.insert(current_id.clone()) {
 			continue;
 		}
-
 		if let Some(status) = status_map.get(&current_id) {
 			sorted_statuses.push(status.clone());
-
 			if let Some(children) = children_map.get_mut(&current_id) {
 				children.sort_by(|a_id, b_id| {
 					let a = &status_map[a_id];
@@ -702,7 +697,6 @@ fn network_loop(
 					},
 					_ => {
 						let mut statuses = Vec::new();
-
 						if let TimelineType::User { ref id, .. } = timeline_type
 							&& max_id.is_none() && let Ok(mut pinned) = client.get_pinned_statuses(access_token, id)
 						{
@@ -711,7 +705,6 @@ fn network_loop(
 							}
 							statuses.extend(pinned);
 						}
-
 						let res = client.get_timeline(access_token, &timeline_type, limit, max_id.as_deref());
 						match res {
 							Ok((s, n)) => {
@@ -1110,7 +1103,6 @@ fn network_loop(
 			Ok(NetworkCommand::ToggleFollow { account_id, acct, target_name }) => {
 				let resolved_id =
 					account_id.or_else(|| client.lookup_account(access_token, &acct).ok().map(|account| account.id));
-
 				if let Some(id) = resolved_id
 					&& let Ok(mut rels) = client.get_relationships(access_token, slice::from_ref(&id))
 					&& let Some(rel) = rels.pop()

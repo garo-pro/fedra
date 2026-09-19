@@ -184,7 +184,6 @@ pub(super) fn manage_filters(ctx: &mut UiCommandContext<'_>) {
 		live_region.announce("Not logged in");
 		return;
 	};
-
 	match client.get_filters(token) {
 		Ok(mut filters) => loop {
 			let result = dialogs::prompt_manage_filters(frame, &filters);
@@ -269,7 +268,6 @@ pub(super) fn manage_lists(ctx: &mut UiCommandContext<'_>) {
 			});
 			dlg.show();
 			state.manage_lists_dialog = Some(dlg);
-
 			handle.send(NetworkCommand::FetchLists);
 		}
 	} else {

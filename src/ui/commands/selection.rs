@@ -28,19 +28,16 @@ pub(super) fn paging_max_id(entries: &[TimelineEntry]) -> Option<String> {
 pub(super) fn get_selected_entry(state: &AppState) -> Option<&TimelineEntry> {
 	let timeline = state.timeline_manager.active()?;
 	let index = timeline.selected_index?;
-
 	let effective_sort_order =
 		if state.config.preserve_thread_order && matches!(timeline.timeline_type, TimelineType::Thread { .. }) {
 			SortOrder::OldestToNewest
 		} else {
 			state.config.sort_order
 		};
-
 	let final_index = match effective_sort_order {
 		SortOrder::NewestToOldest => index,
 		SortOrder::OldestToNewest => timeline.entries.len().checked_sub(1)?.checked_sub(index)?,
 	};
-
 	timeline.entries.get(final_index)
 }
 

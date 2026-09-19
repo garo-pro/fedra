@@ -1,6 +1,6 @@
 use wxdragon::prelude::*;
 
-use super::KEY_RETURN;
+use crate::ui::keys;
 
 pub fn show_find_dialog(parent: &dyn WxWidget) -> Option<String> {
 	let dialog = Dialog::builder(parent, "Find text in timeline").with_size(350, 150).build();
@@ -26,7 +26,7 @@ pub fn show_find_dialog(parent: &dyn WxWidget) -> Option<String> {
 	dialog.set_escape_id(ID_CANCEL);
 	input.on_key_down(move |event| {
 		if let WindowEventData::Keyboard(ref key_event) = event {
-			if key_event.get_key_code() == Some(KEY_RETURN) && !key_event.shift_down() && !key_event.control_down() {
+			if key_event.get_key_code() == Some(keys::RETURN) && !key_event.shift_down() && !key_event.control_down() {
 				dialog.end_modal(ID_OK);
 				event.skip(false);
 			} else {

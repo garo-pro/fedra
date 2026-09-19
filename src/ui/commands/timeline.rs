@@ -78,7 +78,6 @@ pub(super) fn open_timeline(
 	if matches!(timeline_type, TimelineType::User { .. } | TimelineType::Thread { .. }) {
 		state.timeline_manager.snapshot_active_to_history();
 	}
-
 	if !state.timeline_manager.open(timeline_type.clone()) {
 		if let Some(index) = state.timeline_manager.index_of(timeline_type) {
 			state.timeline_manager.set_active(index);
@@ -161,7 +160,6 @@ pub(super) fn close_timeline(
 	if let Some(name) = &active_name {
 		live_region.announce(name);
 	}
-
 	selector.clear();
 	for name in state.timeline_manager.display_names() {
 		selector.append(&name);
@@ -258,7 +256,6 @@ pub(super) fn home_pressed(ctx: &mut UiCommandContext<'_>) {
 			crate::ui::timeline_view::list_index_to_entry_index(0, active.entries.len(), effective_sort_order)
 				.map(|entry_index| crate::ui::timeline_view::entry_id_to_node_id(active.entries[entry_index].id()));
 		timeline_list.set_selection(node_id);
-
 		sync_timeline_selection_from_list(active, timeline_list, effective_sort_order);
 	}
 }
@@ -276,18 +273,15 @@ pub(super) fn load_more(ctx: &mut UiCommandContext<'_>) {
 			}
 			return;
 		}
-
 		if state.config.sort_order == SortOrder::OldestToNewest {
 			active.loading_more_in_background = true;
 		}
-
 		let now = Instant::now();
 		let can_load = active.last_load_attempt.is_none_or(|last| now.duration_since(last) > Duration::from_secs(1));
 		if can_load {
 			active.loading_more = true;
 			active.last_load_attempt = Some(now);
 			if let Some(handle) = &state.network_handle {
-				// Search timelines use offset-based pagination
 				if let TimelineType::Search { ref query, search_type } = active.timeline_type {
 					handle.send(NetworkCommand::Search {
 						query: query.clone(),
@@ -298,7 +292,6 @@ pub(super) fn load_more(ctx: &mut UiCommandContext<'_>) {
 				} else {
 					let max_id = active.next_max_id.clone().or_else(|| paging_max_id(&active.entries));
 					if let Some(max_id) = max_id {
-						// Regular timelines use max_id pagination
 						handle.send(NetworkCommand::FetchTimeline {
 							timeline_type: active.timeline_type.clone(),
 							limit: Some(u32::from(state.config.fetch_limit)),
@@ -525,7 +518,6 @@ pub(super) fn view_thread(ctx: &mut UiCommandContext<'_>) {
 				}
 				return;
 			}
-
 			if let Some(net) = &state.network_handle {
 				net.send(NetworkCommand::FetchRelationship { account_id: account.id.clone() });
 				net.send(NetworkCommand::FetchAccount { account_id: account.id.clone() });
@@ -605,14 +597,12 @@ pub(super) fn view_thread(ctx: &mut UiCommandContext<'_>) {
 				return;
 			};
 			let target = status.reblog.as_ref().map_or(status, std::convert::AsRef::as_ref);
-
 			if let Some(url) = foreign_url(state, target.url.as_ref()) {
 				if let Some(net) = &state.network_handle {
 					net.send(NetworkCommand::ResolveStatusForThread { url });
 				}
 				return;
 			}
-
 			let name = format!("Thread: {}", target.account.display_name_or_username());
 			let timeline_type = TimelineType::Thread { id: target.id.clone(), name };
 			state.pending_restore_post_id = Some((timeline_type.clone(), target.id.clone()));
@@ -676,7 +666,6 @@ pub(super) fn view_quoted_thread(ctx: &mut UiCommandContext<'_>) {
 			}
 		},
 	);
-
 	if let Some((timeline_type, status_id)) = quoted_info {
 		state.pending_restore_post_id = Some((timeline_type.clone(), status_id.clone()));
 		open_timeline(state, timelines_selector, timeline_list, &timeline_type, suppress_selection, live_region, frame);

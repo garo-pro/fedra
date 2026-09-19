@@ -212,7 +212,6 @@ impl Status {
 		let is_boost = self.reblog.is_some();
 		let is_quote = self.quote.is_some();
 		let has_media = !self.media_attachments.is_empty();
-
 		if is_boost {
 			if !filter.boosts {
 				return false;
@@ -228,7 +227,6 @@ impl Status {
 		} else if is_reply {
 			let replying_to_me = current_user_id.is_some_and(|uid| self.in_reply_to_account_id.as_deref() == Some(uid));
 			let is_thread = self.in_reply_to_account_id.as_deref() == Some(&self.account.id);
-
 			if replying_to_me {
 				if !filter.replies_to_me {
 					return false;
@@ -243,11 +241,9 @@ impl Status {
 		} else if !filter.original_posts {
 			return false;
 		}
-
 		if is_quote && !filter.quote_posts {
 			return false;
 		}
-
 		if has_media {
 			if !filter.media_posts {
 				return false;
@@ -255,7 +251,6 @@ impl Status {
 		} else if !filter.text_only_posts {
 			return false;
 		}
-
 		true
 	}
 
@@ -316,11 +311,9 @@ impl Status {
 	) -> PostTemplateVars {
 		let author = self.account.timeline_display_name(options.display_name_emoji_mode);
 		let username = format!("@{}", self.account.acct);
-
 		let filter_cw = self.filter_warning(filter_ctx);
 		let (content_warning, is_filtered) =
 			filter_cw.map_or_else(|| (self.spoiler_text.trim().to_string(), false), |fw| (fw, true));
-
 		let mut content = if is_filtered {
 			self.content_with_spoiler(options.cw_display, cw_expanded, &content_warning)
 		} else {
@@ -334,7 +327,6 @@ impl Status {
 			}
 			content.push_str(&card);
 		}
-
 		let relative_time = friendly_time(&self.created_at, TimestampFormat::Relative).unwrap_or_default();
 		let absolute_time = friendly_time(&self.created_at, TimestampFormat::Absolute).unwrap_or_default();
 		let visibility = self.visibility_display();
@@ -344,7 +336,6 @@ impl Status {
 		let client = self.client_name().unwrap_or_default();
 		let media = self.media_summary(options.cw_display, cw_expanded).unwrap_or_default();
 		let poll = self.poll_summary().map_or_else(String::new, |p| format!(" {p}"));
-
 		let (quote_author, quote_username, quote_content, quote_media, quote_poll) =
 			self.quote.as_ref().and_then(|q| q.quoted_status.as_ref()).map_or_else(
 				|| (String::new(), String::new(), String::new(), String::new(), String::new()),
@@ -364,7 +355,6 @@ impl Status {
 					(author, username, content, media, poll)
 				},
 			);
-
 		PostTemplateVars {
 			author,
 			username,
@@ -480,7 +470,6 @@ impl Status {
 	fn poll_summary(&self) -> Option<String> {
 		let poll = self.poll.as_ref()?;
 		let show_results = poll.voted.unwrap_or(false) || poll.expired;
-
 		if show_results {
 			let total = poll.votes_count.max(1);
 			let options: Vec<String> = poll

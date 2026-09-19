@@ -28,7 +28,6 @@ pub fn process_stream_events(
 	let mut mention_forwards: Vec<Box<crate::mastodon::Notification>> = Vec::new();
 	let mut own_post_forwards: Vec<Box<Status>> = Vec::new();
 	let mut own_delete_forwards: Vec<String> = Vec::new();
-
 	for timeline in state.timeline_manager.iter_mut() {
 		let Some(handle) = &timeline.stream_handle else { continue };
 		let events = handle.drain();
@@ -171,7 +170,6 @@ pub fn process_stream_events(
 			active_needs_update = true;
 		}
 	}
-
 	if !own_post_forwards.is_empty() || !own_delete_forwards.is_empty() {
 		let current_user_id = state.current_user_id.clone();
 		if let Some(current_user_id) = current_user_id {
@@ -211,7 +209,6 @@ pub fn process_stream_events(
 			}
 		}
 	}
-
 	let mut merged_any = false;
 	for snapshot in &status_snapshots {
 		if merge_status_snapshot(state, snapshot) {

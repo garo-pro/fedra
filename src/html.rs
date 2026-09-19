@@ -156,7 +156,6 @@ pub fn extract_links(html: &str) -> Vec<Link> {
 					continue;
 				}
 			}
-
 			links.push(Link { url: href.to_string() });
 		}
 	}

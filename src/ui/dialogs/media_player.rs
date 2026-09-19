@@ -80,11 +80,9 @@ impl ActivationHandler for MediaActivationHandler {
 	fn request_initial_tree(&mut self) -> Option<TreeUpdate> {
 		let mut root = Node::new(Role::Window);
 		root.set_children(vec![LR_ANNOUNCEMENT_ID]);
-
 		let mut ann_node = Node::new(Role::Label);
 		ann_node.set_value("");
 		ann_node.set_live(accesskit::Live::Polite);
-
 		Some(TreeUpdate {
 			nodes: vec![(LR_ANNOUNCEMENT_ID, ann_node), (LR_ROOT_ID, root)],
 			tree: Some(TreeInfo::new(LR_ROOT_ID)),
@@ -123,14 +121,11 @@ impl MediaLiveRegion {
 			new_text.push('\u{00A0}');
 		}
 		*last = Some(new_text.clone());
-
 		let mut node = Node::new(Role::Label);
 		node.set_value(new_text);
 		node.set_live(accesskit::Live::Polite);
-
 		let mut root = Node::new(Role::Window);
 		root.set_children(vec![LR_ANNOUNCEMENT_ID]);
-
 		let update = TreeUpdate {
 			nodes: vec![(LR_ANNOUNCEMENT_ID, node), (LR_ROOT_ID, root)],
 			tree: None,
@@ -304,7 +299,6 @@ fn spawn_progress_download(
 	ACTIVE_PROGRESS.with(|p| {
 		*p.borrow_mut() = Some(progress);
 	});
-
 	let downloaded = Arc::new(AtomicU64::new(0));
 	let total = Arc::new(AtomicU64::new(0));
 	let is_running = Arc::new(AtomicBool::new(true));
@@ -335,12 +329,10 @@ fn spawn_progress_download(
 			thread::sleep(Duration::from_millis(200));
 		}
 	});
-
 	let task_id = NEXT_TASK_ID.fetch_add(1, Ordering::Relaxed);
 	ACTIVE_DOWNLOAD_DONE.with(|d| {
 		d.borrow_mut().insert(task_id, Box::new(on_done));
 	});
-
 	let d_downloaded = downloaded;
 	let d_total = total;
 	let d_is_running = is_running;
@@ -496,12 +488,10 @@ pub fn show_media_player(_parent: &dyn WxWidget, url: String, kind: &str, _acces
 	const ID_ELAPSED: i32 = 10008;
 	const ID_REMAINING: i32 = 10009;
 	const ID_TOTAL: i32 = 10010;
-
 	if kind.eq_ignore_ascii_case("image") {
 		show_image_viewer(url);
 		return;
 	}
-
 	let frame = Frame::builder().with_title("Media Player").with_size(Size::new(480, 200)).build();
 	let lr = MediaLiveRegion::new(&frame);
 	let panel = Panel::builder(&frame).build();
@@ -512,7 +502,6 @@ pub fn show_media_player(_parent: &dyn WxWidget, url: String, kind: &str, _acces
 	let frame_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	frame_sizer.add(&panel, 1, SizerFlag::Expand, 0);
 	frame.set_sizer(frame_sizer, true);
-
 	let menu = Menu::builder()
 		.append_item(ID_PLAY_PAUSE, "Play/Pause\tSpace", "Play or pause the media")
 		.append_item(ID_SEEK_BACK, "Seek Backward\tLeft", "Seek backward 10 seconds")
@@ -530,7 +519,6 @@ pub fn show_media_player(_parent: &dyn WxWidget, url: String, kind: &str, _acces
 		.build();
 	let menu_bar = MenuBar::builder().append(menu, "&Playback").build();
 	frame.set_menu_bar(menu_bar);
-
 	let temp_path = unique_temp_path();
 	let progress = Arc::new(DownloadProgress {
 		downloaded: AtomicU64::new(0),
@@ -541,10 +529,8 @@ pub fn show_media_player(_parent: &dyn WxWidget, url: String, kind: &str, _acces
 		dest: temp_path,
 	});
 	start_background_download(url.clone(), progress.clone());
-
 	let state: Rc<RefCell<Option<PlayerState>>> = Rc::new(RefCell::new(Some(PlayerState::Loading(progress.clone()))));
 	let still_loading = Arc::new(AtomicBool::new(true));
-
 	let ticker_id = NEXT_TASK_ID.fetch_add(1, Ordering::Relaxed);
 	ACTIVE_TICKS.with(|t| {
 		t.borrow_mut().insert(ticker_id, {
@@ -565,7 +551,6 @@ pub fn show_media_player(_parent: &dyn WxWidget, url: String, kind: &str, _acces
 		});
 	});
 	spawn_loading_ticker(ticker_id, progress.clone(), still_loading.clone());
-
 	frame.on_menu_selected({
 		let state = state.clone();
 		let frm = frame;
@@ -644,7 +629,6 @@ pub fn show_media_player(_parent: &dyn WxWidget, url: String, kind: &str, _acces
 			_ => {}
 		}
 	});
-
 	frame.show(true);
 	// Deliberately focus the frame, not status_label: a screen reader treats
 	// the focused control's text as live and re-speaks it on every change
@@ -653,7 +637,6 @@ pub fn show_media_player(_parent: &dyn WxWidget, url: String, kind: &str, _acces
 	// own even though nothing calls announce() for them. The label stays
 	// visible for sighted users; it's just not what's focused.
 	frame.set_focus();
-
 	let load_id = NEXT_TASK_ID.fetch_add(1, Ordering::Relaxed);
 	ACTIVE_LOAD_DONE.with(|d| {
 		d.borrow_mut().insert(load_id, {
@@ -697,7 +680,6 @@ pub fn show_media_player(_parent: &dyn WxWidget, url: String, kind: &str, _acces
 			})
 		});
 	});
-
 	thread::spawn(move || {
 		while !progress.done.load(Ordering::Acquire) {
 			thread::sleep(Duration::from_millis(20));
@@ -741,7 +723,6 @@ fn decode_image(progress: &DownloadProgress) -> Result<DecodedImage, String> {
 fn show_image_viewer(url: String) {
 	const ID_DOWNLOAD: i32 = 10006;
 	const ID_CLOSE: i32 = 10007;
-
 	let frame = Frame::builder().with_title("Media Viewer").with_size(Size::new(480, 200)).build();
 	let panel = Panel::builder(&frame).build();
 	let status_label = StaticText::builder(&panel).with_label("Loading image...").build();
@@ -751,7 +732,6 @@ fn show_image_viewer(url: String) {
 	let frame_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	frame_sizer.add(&panel, 1, SizerFlag::Expand, 0);
 	frame.set_sizer(frame_sizer, true);
-
 	let menu = Menu::builder()
 		.append_item(ID_DOWNLOAD, "Download\tD", "Download this image file")
 		.append_separator()
@@ -759,7 +739,6 @@ fn show_image_viewer(url: String) {
 		.build();
 	let menu_bar = MenuBar::builder().append(menu, "&Image").build();
 	frame.set_menu_bar(menu_bar);
-
 	frame.on_menu_selected({
 		let frm = frame;
 		let url = url.clone();
@@ -773,12 +752,10 @@ fn show_image_viewer(url: String) {
 			_ => {}
 		}
 	});
-
 	frame.show(true);
 	// See show_media_player: focusing the frame, not the label, avoids the
 	// screen reader re-speaking every status text change on its own.
 	frame.set_focus();
-
 	let temp_path = unique_temp_path();
 	let progress = Arc::new(DownloadProgress {
 		downloaded: AtomicU64::new(0),
@@ -789,7 +766,6 @@ fn show_image_viewer(url: String) {
 		dest: temp_path,
 	});
 	start_background_download(url, progress.clone());
-
 	let still_loading = Arc::new(AtomicBool::new(true));
 	let ticker_id = NEXT_TASK_ID.fetch_add(1, Ordering::Relaxed);
 	ACTIVE_TICKS.with(|t| {
@@ -811,7 +787,6 @@ fn show_image_viewer(url: String) {
 		});
 	});
 	spawn_loading_ticker(ticker_id, progress.clone(), still_loading.clone());
-
 	let load_id = NEXT_TASK_ID.fetch_add(1, Ordering::Relaxed);
 	ACTIVE_IMAGE_DONE.with(|d| {
 		d.borrow_mut().insert(load_id, {
@@ -852,7 +827,6 @@ fn show_image_viewer(url: String) {
 			})
 		});
 	});
-
 	thread::spawn(move || {
 		while !progress.done.load(Ordering::Acquire) {
 			thread::sleep(Duration::from_millis(20));
@@ -891,18 +865,13 @@ fn format_duration(duration: Duration) -> String {
 	let hours = total_secs / 3600;
 	let minutes = (total_secs % 3600) / 60;
 	let seconds = total_secs % 60;
-
 	let mut parts = Vec::new();
-
 	if hours > 0 {
 		parts.push(if hours == 1 { "1 hour".to_string() } else { format!("{hours} hours") });
 	}
-
 	if minutes > 0 {
 		parts.push(if minutes == 1 { "1 minute".to_string() } else { format!("{minutes} minutes") });
 	}
-
 	parts.push(if seconds == 1 { "1 second".to_string() } else { format!("{seconds} seconds") });
-
 	parts.join(", ")
 }

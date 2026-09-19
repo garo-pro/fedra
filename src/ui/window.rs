@@ -16,7 +16,7 @@ use crate::{
 	ID_VIEW_HASHTAGS, ID_VIEW_HELP, ID_VIEW_IN_BROWSER, ID_VIEW_MENTIONS, ID_VIEW_POST, ID_VIEW_PROFILE,
 	ID_VIEW_QUOTED_THREAD, ID_VIEW_THREAD, ID_VIEW_USER_TIMELINE, ID_VOTE, UiCommand,
 	config::{ActionId, AutoloadMode, ShortcutsConfig, SortOrder},
-	ui::{dialogs, menu::build_menu_bar},
+	ui::{dialogs, keys, menu::build_menu_bar},
 	ui_wake::UiCommandSender,
 };
 
@@ -32,7 +32,6 @@ pub fn build_main_window() -> WindowParts {
 	let menu_bar = build_menu_bar();
 	frame.set_menu_bar(menu_bar);
 	let panel = Panel::builder(&frame).build();
-
 	let sizer = BoxSizer::builder(Orientation::Horizontal).build();
 	let timelines_label = StaticText::builder(&panel).with_label("Timelines").build();
 	let timelines_selector = ListBox::builder(&panel).with_choices(vec!["Home".to_string()]).build();
@@ -49,11 +48,9 @@ pub fn build_main_window() -> WindowParts {
 	sizer.add_sizer(&timelines_sizer, 1, SizerFlag::Expand, 0);
 	sizer.add(&timeline_list, 3, SizerFlag::Expand | SizerFlag::All, 8);
 	panel.set_sizer(sizer, true);
-
 	let frame_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	frame_sizer.add(&panel, 1, SizerFlag::Expand, 0);
 	frame.set_sizer(frame_sizer, true);
-
 	WindowParts { frame, timelines_selector, timeline_list }
 }
 
@@ -85,7 +82,6 @@ pub fn bind_input_handlers(
 			let _ = ui_tx_selector.send(UiCommand::TimelineSelectionChanged(index));
 		}
 	});
-
 	let ui_tx_delete = ui_tx.clone();
 	let shutdown_delete = is_shutting_down.clone();
 	let quick_action_keys_selector = quick_action_keys_enabled.clone();
@@ -159,7 +155,6 @@ pub fn bind_input_handlers(
 		}
 		event.skip(true);
 	});
-
 	let ui_tx_list_key = ui_tx.clone();
 	let shutdown_list_key = is_shutting_down.clone();
 	let quick_action_keys_list = quick_action_keys_enabled.clone();
@@ -181,9 +176,7 @@ pub fn bind_input_handlers(
 				event.skip(true);
 				return;
 			};
-
 			let quick_mode = quick_action_keys_list.get();
-
 			if ctrl && (49..=57).contains(&k) {
 				if let Ok(index) = usize::try_from(k - 49) {
 					let _ = ui_tx_list_key.send(UiCommand::SwitchTimelineByIndex(index));
@@ -191,7 +184,6 @@ pub fn bind_input_handlers(
 				event.skip(false);
 				return;
 			}
-
 			if quick_mode && !ctrl && !shift && !alt && (49..=57).contains(&k) {
 				if let Ok(index) = usize::try_from(k - 49) {
 					let _ = ui_tx_list_key.send(UiCommand::SwitchTimelineByIndex(index));
@@ -199,7 +191,6 @@ pub fn bind_input_handlers(
 				event.skip(false);
 				return;
 			}
-
 			if !ctrl && !shift && !alt {
 				let mode = autoload_mode_list.get();
 				if mode == AutoloadMode::AtBoundary || mode == AutoloadMode::AtEnd {
@@ -207,13 +198,13 @@ pub fn bind_input_handlers(
 					let selection = timeline_list_key.get_selection();
 					let count = timeline_list_key.get_count();
 					if let Some(index) = selection {
-						if k == 315 {
+						if k == keys::UP {
 							if sort_order == SortOrder::OldestToNewest && index == 0 {
 								let _ = ui_tx_list_key.send(UiCommand::LoadMore);
 								event.skip(false);
 								return;
 							}
-						} else if k == 317
+						} else if k == keys::DOWN
 							&& mode == AutoloadMode::AtBoundary
 							&& sort_order == SortOrder::NewestToOldest
 							&& index + 1 == count
@@ -224,13 +215,12 @@ pub fn bind_input_handlers(
 						}
 					}
 				}
-				if k == 313 && sort_order_list.get() == SortOrder::OldestToNewest {
+				if k == keys::HOME && sort_order_list.get() == SortOrder::OldestToNewest {
 					let _ = ui_tx_list_key.send(UiCommand::HomePressed);
 					event.skip(false);
 					return;
 				}
 			}
-
 			if let Some(action) = shortcuts_list_key.borrow().find_action(quick_mode, k, ctrl, alt, shift) {
 				match action {
 					ActionId::NewPost => {
@@ -425,7 +415,6 @@ pub fn bind_input_handlers(
 				event.skip(false);
 				return;
 			}
-
 			if !quick_mode
 				&& !ctrl && !shift
 				&& !alt && (32..=126).contains(&k)
@@ -439,7 +428,6 @@ pub fn bind_input_handlers(
 		}
 		event.skip(true);
 	});
-
 	let shutdown_ctx = is_shutting_down.clone();
 	let context_menu_state_ctx = context_menu_state;
 	let timeline_list_ctx = parts.timeline_list.clone();
@@ -452,24 +440,19 @@ pub fn bind_input_handlers(
 		let q = cms.quick_action_keys;
 		let sc = shortcuts_ctx.borrow();
 		let mut menu = Menu::builder().build();
-
 		let append_item = |menu: &mut Menu, id: i32, base: &str, action: ActionId, help: &str| {
 			let shortcut = sc.get_menu_str(q, action);
 			let label = if shortcut.is_empty() { base.to_string() } else { format!("{base}\t{shortcut}") };
 			menu.append(id, &label, help, ItemKind::Normal);
 		};
-
 		append_item(&mut menu, ID_REPLY, "&Reply...", ActionId::Reply, "Reply to all mentioned users");
 		append_item(&mut menu, ID_REPLY_AUTHOR, "Reply to &Author...", ActionId::ReplyAuthor, "Reply to author only");
 		append_item(&mut menu, ID_QUOTE, "&Quote...", ActionId::Quote, "Quote this post");
 		menu.append_separator();
-
 		let fav_base = if cms.favourited { "Un&favorite" } else { "&Favorite" };
 		append_item(&mut menu, ID_FAVORITE, fav_base, ActionId::Favorite, "Favorite or unfavorite selected post");
-
 		let bookmark_base = if cms.bookmarked { "Un&bookmark" } else { "&Bookmark" };
 		append_item(&mut menu, ID_BOOKMARK, bookmark_base, ActionId::Bookmark, "Bookmark or unbookmark selected post");
-
 		if !cms.is_direct {
 			let boost_base = if cms.reblogged { "Un&boost" } else { "&Boost" };
 			append_item(&mut menu, ID_BOOST, boost_base, ActionId::Boost, "Boost or unboost selected post");
@@ -548,7 +531,6 @@ pub fn bind_input_handlers(
 				"View users who favorited this post",
 			);
 		}
-
 		if cms.is_own {
 			menu.append_separator();
 			append_item(&mut menu, ID_EDIT_POST, "&Edit Post...", ActionId::EditPost, "Edit selected post");
@@ -558,7 +540,6 @@ pub fn bind_input_handlers(
 		}
 		timeline_list_ctx.popup_menu(&mut menu, None);
 	});
-
 	let ui_tx_list = ui_tx.clone();
 	let shutdown_list = is_shutting_down.clone();
 	let suppress_list = suppress_selection;
@@ -580,7 +561,6 @@ pub fn bind_input_handlers(
 			let sort_order = sort_order_selection.get();
 			let is_oldest = sort_order == SortOrder::OldestToNewest && selection == 0;
 			let is_newest = sort_order == SortOrder::NewestToOldest && selection + 1 == count;
-
 			if is_oldest {
 				let _ = ui_tx_list.send(UiCommand::LoadMoreBackground);
 			} else if is_newest {
@@ -588,7 +568,6 @@ pub fn bind_input_handlers(
 			}
 		}
 	});
-
 	let ui_tx_menu = ui_tx.clone();
 	let shutdown_menu = is_shutting_down.clone();
 	let frame_menu = parts.frame;
@@ -614,7 +593,6 @@ pub fn bind_input_handlers(
 			event.skip(true);
 		}
 	});
-
 	let ui_tx_menu = ui_tx;
 	let shutdown_menu = is_shutting_down;
 	let frame_menu = parts.frame;

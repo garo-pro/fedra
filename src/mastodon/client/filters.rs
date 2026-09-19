@@ -34,7 +34,6 @@ impl MastodonClient {
 		if let Some(expires_in) = expires_in {
 			params.push(("expires_in".to_string(), expires_in.to_string()));
 		}
-
 		Self::send_json(self.http.post(url).bearer_auth(access_token).form(&params), "create filter")
 	}
 
@@ -69,7 +68,6 @@ impl MastodonClient {
 		if let Some(expires_in) = expires_in {
 			params.push(("expires_in".to_string(), expires_in.to_string()));
 		}
-
 		Self::send_json(self.http.put(url).bearer_auth(access_token).form(&params), "update filter")
 	}
 

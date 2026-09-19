@@ -38,7 +38,6 @@ impl FollowListDialog {
 		C: Fn() + 'static,
 	{
 		const ID_VIEW_TIMELINE: i32 = 10044;
-
 		let dialog_title = Self::make_title(title, first_page.len() as u64, total_count, false);
 		let dialog = Dialog::builder(parent, &dialog_title).with_size(600, 400).build();
 		let panel = Panel::builder(&dialog).build();
@@ -48,7 +47,6 @@ impl FollowListDialog {
 		let profile_text = TextCtrl::builder(&panel)
 			.with_style(TextCtrlStyle::MultiLine | TextCtrlStyle::ReadOnly | TextCtrlStyle::DontWrap)
 			.build();
-
 		for account in first_page {
 			account_list.append(&Self::account_label(account));
 		}
@@ -56,7 +54,6 @@ impl FollowListDialog {
 			account_list.set_selection(0, true);
 			profile_text.set_value(&first.profile_display());
 		}
-
 		let button_sizer = BoxSizer::builder(Orientation::Horizontal).build();
 		let actions_button = Button::builder(&panel).with_label("&Actions...").build();
 		let timeline_button = Button::builder(&panel).with_id(ID_VIEW_TIMELINE).with_label("View &Timeline").build();
@@ -65,7 +62,6 @@ impl FollowListDialog {
 		button_sizer.add(&timeline_button, 0, SizerFlag::Right, 8);
 		button_sizer.add_stretch_spacer(1);
 		button_sizer.add(&close_button, 0, SizerFlag::Right, 8);
-
 		main_sizer.add(&list_label, 0, SizerFlag::Expand | SizerFlag::All, 8);
 		main_sizer.add(&account_list, 1, SizerFlag::Expand | SizerFlag::Left | SizerFlag::Right, 8);
 		main_sizer.add(&profile_text, 1, SizerFlag::Expand | SizerFlag::Left | SizerFlag::Right, 8);
@@ -75,11 +71,9 @@ impl FollowListDialog {
 		dialog_sizer.add(&panel, 1, SizerFlag::Expand, 0);
 		dialog.set_sizer(dialog_sizer, true);
 		dialog.set_escape_id(ID_CANCEL);
-
 		let accounts_rc: Rc<RefCell<Vec<Account>>> = Rc::new(RefCell::new(first_page.to_vec()));
 		let relationships_rc: Rc<RefCell<HashMap<String, Relationship>>> = Rc::new(RefCell::new(HashMap::new()));
 		let current_account_rc: Rc<RefCell<Option<Account>>> = Rc::new(RefCell::new(first_page.first().cloned()));
-
 		let list_sel = account_list;
 		let text_sel = profile_text;
 		let accounts_sel = accounts_rc.clone();
@@ -98,11 +92,9 @@ impl FollowListDialog {
 				*current_account_sel.borrow_mut() = Some(account.clone());
 			}
 		});
-
 		let relationships_click = relationships_rc.clone();
 		let current_account_click = current_account_rc.clone();
 		let panel_clone = panel;
-
 		let show_menu = Rc::new(move || {
 			let current = current_account_click.borrow();
 			let Some(account) = current.as_ref() else { return };
@@ -171,17 +163,14 @@ impl FollowListDialog {
 			menu.append(user_actions::ID_ACTION_ADD_TO_LIST, "Add to List...", "", ItemKind::Normal);
 			panel_clone.popup_menu(&mut menu, None);
 		});
-
 		let show_menu_btn = show_menu.clone();
 		actions_button.on_click(move |_| {
 			show_menu_btn();
 		});
-
 		let show_menu_ctx = show_menu;
 		panel.on_context_menu(move |_| {
 			show_menu_ctx();
 		});
-
 		let relationships_handler = relationships_rc.clone();
 		let current_account_handler = current_account_rc;
 		panel.on_menu_selected(move |event| {
@@ -286,7 +275,6 @@ impl FollowListDialog {
 			};
 			let _ = net_tx.send(cmd);
 		});
-
 		let accounts_btn = accounts_rc.clone();
 		let list_btn = account_list;
 		let dlg_timeline = dialog;
@@ -297,16 +285,13 @@ impl FollowListDialog {
 			}
 			dlg_timeline.close(true);
 		});
-
 		let dlg_close = dialog;
 		close_button.on_click(move |_| {
 			dlg_close.close(true);
 		});
-
 		dialog.on_close(move |_| {
 			on_close();
 		});
-
 		dialog.centre();
 		Self {
 			dialog,

@@ -326,7 +326,6 @@ impl Timeline {
 		if self.entries.is_empty() {
 			return None;
 		}
-
 		let effective_sort_order = self.effective_sort_order(config);
 		let len = self.entries.len();
 		for visual_index in start_index..len {
@@ -340,7 +339,6 @@ impl Timeline {
 				return Some(entry_index);
 			}
 		}
-
 		None
 	}
 
@@ -349,13 +347,9 @@ impl Timeline {
 		if self.entries.is_empty() {
 			return None;
 		}
-
 		let effective_sort_order = self.effective_sort_order(config);
-
 		let len = self.entries.len();
-
 		let current_visual_index = start_visual_index;
-
 		if current_visual_index == 0 {
 			return None;
 		}
@@ -364,14 +358,12 @@ impl Timeline {
 				SortOrder::NewestToOldest => visual_index,
 				SortOrder::OldestToNewest => len - 1 - visual_index,
 			};
-
 			if let Some(entry) = self.entries.get(entry_index)
 				&& entry.matches_query(query)
 			{
 				return Some(entry_index);
 			}
 		}
-
 		None
 	}
 }
@@ -400,33 +392,26 @@ impl TimelineManager {
 		if self.timelines.len() <= 1 {
 			return false;
 		}
-
 		if use_history {
 			let can_go_back = self.history.iter().rev().any(|hist_type| {
 				hist_type != timeline_type && self.timelines.iter().any(|t| t.timeline_type == *hist_type)
 			});
-
 			if !can_go_back {
 				return false;
 			}
 		}
-
 		if let Some(index) = self.timelines.iter().position(|t| t.timeline_type == *timeline_type) {
 			let closing_active = index == self.active_index;
-
 			self.timelines.remove(index);
 			self.history.retain(|t| t != timeline_type);
 			if self.last_focused.as_ref() == Some(timeline_type) {
 				self.last_focused = None;
 			}
-
 			if closing_active {
 				let mut handled = if use_history { self.go_back() } else { false };
-
 				if !handled {
 					handled = self.focus_last_focused();
 				}
-
 				if !handled {
 					if self.active_index >= self.timelines.len() && !self.timelines.is_empty() {
 						self.active_index = self.timelines.len() - 1;

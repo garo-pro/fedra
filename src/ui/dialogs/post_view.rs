@@ -15,15 +15,12 @@ fn strip_quote_html(html: &str) -> String {
 		cleaned.push_str(&html[start + end + 7..]);
 		return cleaned;
 	}
-
 	let start_idx = usize::from(html.starts_with("<p>")) * 3;
-
 	if let Some(re_idx) = html[start_idx..].find("RE: ")
 		&& re_idx < 30
 	{
 		let actual_re_idx = start_idx + re_idx;
 		let mut end_cut = actual_re_idx;
-
 		if let Some(a_idx) = html[actual_re_idx..].find("</a>") {
 			end_cut = actual_re_idx + a_idx + 4;
 		} else if let Some(br_idx) = html[actual_re_idx..].find("<br") {
@@ -31,14 +28,11 @@ fn strip_quote_html(html: &str) -> String {
 		} else if let Some(p_idx) = html[actual_re_idx..].find("</p>") {
 			end_cut = actual_re_idx + p_idx;
 		}
-
 		let remainder = &html[end_cut..];
 		let mut rest = remainder.trim_start();
-
 		if let Some(stripped) = rest.strip_prefix("</span>") {
 			rest = stripped.trim_start();
 		}
-
 		if let Some(stripped) =
 			rest.strip_prefix("<br>").or_else(|| rest.strip_prefix("<br />")).or_else(|| rest.strip_prefix("<br/>"))
 		{
@@ -46,7 +40,6 @@ fn strip_quote_html(html: &str) -> String {
 		} else if let Some(stripped) = rest.strip_prefix("</p>") {
 			rest = stripped.trim_start();
 		}
-
 		let prefix = &html[..actual_re_idx];
 		if prefix != "<p>" {
 			return format!("{prefix}{rest}");
@@ -76,16 +69,13 @@ pub fn show_post_view_dialog(parent: &Frame, status: &Status) -> Option<UiComman
 			}
 		}
 	});
-
 	let mut content = if status.spoiler_text.is_empty() {
 		status.content.clone()
 	} else {
 		format!("<p><strong>Content Warning: {}</strong></p><hr>{}", status.spoiler_text, status.content)
 	};
-
 	if let Some(quote) = status.quote.as_ref().and_then(|q| q.quoted_status.as_ref()) {
 		content = strip_quote_html(&content);
-
 		let quote_author = quote.account.display_name_or_username();
 		let quote_acct = &quote.account.acct;
 		let quote_content = if quote.spoiler_text.is_empty() {
@@ -93,7 +83,6 @@ pub fn show_post_view_dialog(parent: &Frame, status: &Status) -> Option<UiComman
 		} else {
 			format!("<p><strong>Content Warning: {}</strong></p><hr>{}", quote.spoiler_text, quote.content)
 		};
-
 		content = format!(
 			"{content}
 			<blockquote style=\"border-left: 4px solid #ccc; margin-left: 0; padding-left: 10px; color: #555;\">
@@ -102,7 +91,6 @@ pub fn show_post_view_dialog(parent: &Frame, status: &Status) -> Option<UiComman
 			</blockquote>"
 		);
 	}
-
 	let html = format!(
 		"<html>
 		<head>
@@ -124,9 +112,7 @@ pub fn show_post_view_dialog(parent: &Frame, status: &Status) -> Option<UiComman
 		status.account.acct,
 		content
 	);
-
 	web_view.set_page(&html, "");
-
 	let web_view_for_load = web_view;
 	web_view.on_loaded(move |_| {
 		web_view_for_load.run_script(

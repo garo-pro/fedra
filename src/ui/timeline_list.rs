@@ -5,6 +5,8 @@ use accesskit_windows::SubclassingAdapter;
 use windows::Win32::Foundation::HWND;
 use wxdragon::{prelude::*, widgets::panel::PanelStyle};
 
+use crate::ui::keys;
+
 struct TimelineActionHandler {
 	cb_ptr: std::sync::Arc<std::sync::atomic::AtomicUsize>,
 }
@@ -20,6 +22,7 @@ impl ActionHandler for TimelineActionHandler {
 }
 
 pub const ROOT_ID: NodeId = NodeId(1);
+const PAGE_JUMP: usize = 20;
 pub const ANNOUNCEMENT_ID: NodeId = NodeId(2);
 struct ListState {
 	entries: Vec<(NodeId, String)>,
@@ -64,13 +67,11 @@ impl ActivationHandler for TimelineActivationHandler {
 			}
 			nodes.push((*id, node));
 		}
-
 		children.push(ANNOUNCEMENT_ID);
 		let mut ann_node = Node::new(Role::Label);
 		ann_node.set_value("");
 		ann_node.set_live(accesskit::Live::Polite);
 		nodes.push((ANNOUNCEMENT_ID, ann_node));
-
 		root.set_children(children);
 		nodes.push((ROOT_ID, root));
 		Some(TreeUpdate {
@@ -123,7 +124,6 @@ impl TimelineList {
 				wxdragon::ffi::wxd_Window_GetWindowStyle(panel.as_ptr().cast()) | 0x0004_0000,
 			);
 		}
-
 		let hwnd = HWND(panel.get_handle().cast());
 		let list_state = Rc::new(RefCell::new(ListState {
 			entries: Vec::new(),
@@ -139,7 +139,6 @@ impl TimelineList {
 			TimelineActivationHandler { state: list_state.clone() },
 			TimelineActionHandler { cb_ptr: cb_ptr.clone() },
 		);
-
 		let inner = Rc::new(RefCell::new(Inner {
 			adapter,
 			state: list_state,
@@ -147,9 +146,7 @@ impl TimelineList {
 			on_key_down: None,
 			action_cb_raw: 0,
 		}));
-
 		let tl = Self { panel, inner };
-
 		let weak_inner = Rc::downgrade(&tl.inner);
 		let panel_copy = tl.panel;
 		let callback: Box<dyn Fn(ActionRequest)> = Box::new(move |request| {
@@ -158,7 +155,6 @@ impl TimelineList {
 			{
 				let temp_tl = Self { panel: panel_copy, inner: inner_rc };
 				temp_tl.set_selection(Some(request.target_node));
-
 				let cb = temp_tl.inner.borrow().on_selection_changed.as_ref().map(|cb| std::ptr::from_ref(cb.as_ref()));
 				if let Some(cb_ptr) = cb {
 					unsafe { (*cb_ptr)() };
@@ -168,7 +164,6 @@ impl TimelineList {
 		let raw_cb = Box::into_raw(Box::new(callback)) as usize;
 		tl.inner.borrow_mut().action_cb_raw = raw_cb;
 		cb_ptr.store(raw_cb, std::sync::atomic::Ordering::Relaxed);
-
 		tl.setup_keyboard();
 		tl
 	}
@@ -194,8 +189,7 @@ impl TimelineList {
 		let Some(key) = key_event.get_key_code() else {
 			return false;
 		};
-		if key == 9 {
-			// TAB
+		if key == keys::TAB {
 			let forward = !key_event.shift_down();
 			self.panel.navigate(forward);
 			return true;
@@ -205,42 +199,36 @@ impl TimelineList {
 		if state.entries.is_empty() {
 			return false;
 		}
-
 		let count = state.entries.len();
 		let current = state.selected_index.unwrap_or(0);
 		let mut new_idx = current;
-
 		match key {
-			315 => {
-				// UP
+			keys::UP => {
 				if current > 0 {
 					new_idx = current - 1;
 				}
 			}
-			317 => {
-				// DOWN
+			keys::DOWN => {
 				if current + 1 < count {
 					new_idx = current + 1;
 				}
 			}
-			313 => {
-				// HOME
+			keys::HOME => {
 				new_idx = 0;
 			}
-			312 => {
-				// END
+			keys::END => {
 				new_idx = count - 1;
 			}
-			366 => {
-				if current >= 20 {
-					new_idx = current - 20;
+			keys::PAGE_UP => {
+				if current >= PAGE_JUMP {
+					new_idx = current - PAGE_JUMP;
 				} else {
 					new_idx = 0;
 				}
 			}
-			367 => {
-				if current + 20 < count {
-					new_idx = current + 20;
+			keys::PAGE_DOWN => {
+				if current + PAGE_JUMP < count {
+					new_idx = current + PAGE_JUMP;
 				} else {
 					new_idx = count - 1;
 				}
@@ -250,7 +238,6 @@ impl TimelineList {
 		if new_idx != current || state.selected_index.is_none() {
 			let old_idx = state.selected_index;
 			state.selected_index = Some(new_idx);
-
 			let focus_id = state.entries[new_idx].0;
 			let mut nodes = Vec::new();
 			if let Some(old) = old_idx
@@ -272,7 +259,6 @@ impl TimelineList {
 				old_node.set_position_in_set(old);
 				nodes.push((old_id, old_node));
 			}
-
 			if let Some((new_id, new_text)) = state.entries.get(new_idx) {
 				let mut new_node = Node::new(Role::ListBoxOption);
 				new_node.set_label(new_text.clone());
@@ -293,7 +279,6 @@ impl TimelineList {
 				unsafe { (*cb_ptr)() };
 			}
 		}
-
 		true
 	}
 
@@ -355,12 +340,10 @@ impl TimelineList {
 				unique_entries.push((*id, text.clone()));
 			}
 		}
-
 		let valid_focus = selected_id
 			.filter(|id| unique_entries.iter().any(|(eid, _)| eid == id))
 			.or_else(|| unique_entries.first().map(|(id, _)| *id));
 		let focus_id = valid_focus.unwrap_or(ROOT_ID);
-
 		let state_rc = { self.inner.borrow().state.clone() };
 		let mut state = state_rc.borrow_mut();
 		let old_selected_id = state.selected_index.and_then(|i| state.entries.get(i)).map(|(id, _)| *id);
@@ -372,7 +355,6 @@ impl TimelineList {
 		let selection_is_moving = old_selected_id != Some(focus_id);
 		let old_positions: std::collections::HashMap<NodeId, (usize, String)> =
 			state.entries.iter().enumerate().map(|(i, (id, text))| (*id, (i, text.clone()))).collect();
-
 		let mut children = Vec::with_capacity(unique_entries.len());
 		let mut nodes = Vec::new();
 		for (i, (id, text)) in unique_entries.iter().enumerate() {
@@ -421,7 +403,6 @@ impl TimelineList {
 		}
 		children.push(ANNOUNCEMENT_ID);
 		// Do not push ANNOUNCEMENT_ID to nodes here, so AccessKit uses the existing node.
-
 		let entry_count = unique_entries.len();
 		state.entries = unique_entries;
 		if let Some(id) = valid_focus {
@@ -430,7 +411,6 @@ impl TimelineList {
 			state.selected_index = None;
 		}
 		drop(state);
-
 		let mut root = Node::new(Role::ListBox);
 		root.set_size_of_set(entry_count);
 		root.set_children(children);
@@ -494,17 +474,14 @@ impl TimelineList {
 		if state.entries.is_empty() {
 			return;
 		}
-
 		let now = Instant::now();
 		let expired = state.last_search_time.is_none_or(|t| now.duration_since(t).as_millis() > 1000);
 		if expired {
 			state.search_buffer.clear();
 		}
 		state.last_search_time = Some(now);
-
 		let lower_ch = ch.to_lowercase().next().unwrap_or(ch);
 		let is_repeat = state.search_buffer.len() == 1 && state.search_buffer.starts_with(lower_ch);
-
 		if is_repeat {
 			let start = state.selected_index.map_or(0, |i| i + 1);
 			let count = state.entries.len();
@@ -578,7 +555,6 @@ impl TimelineList {
 			new_text.push('\u{00A0}');
 		}
 		state.current_tree_announcement = Some(new_text.clone());
-
 		let mut node = Node::new(Role::Label);
 		node.set_value(new_text);
 		node.set_live(accesskit::Live::Polite);
@@ -587,7 +563,6 @@ impl TimelineList {
 		} else {
 			state.entries.first().map_or(ROOT_ID, |(id, _)| *id)
 		};
-
 		let mut root = Node::new(Role::ListBox);
 		root.set_size_of_set(state.entries.len());
 		let mut children = Vec::with_capacity(state.entries.len() + 1);
@@ -596,7 +571,6 @@ impl TimelineList {
 		}
 		children.push(ANNOUNCEMENT_ID);
 		root.set_children(children);
-
 		let update = TreeUpdate {
 			nodes: vec![(ANNOUNCEMENT_ID, node), (ROOT_ID, root)],
 			tree: None,

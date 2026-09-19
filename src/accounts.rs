@@ -20,10 +20,8 @@ use crate::{
 
 pub fn update_window_title(state: &AppState, frame: &Frame) {
 	let handle = state.active_account().map_or_else(|| "Unknown".to_string(), Account::full_handle);
-
 	let timeline =
 		state.timeline_manager.active().map_or_else(|| "Unknown".to_string(), |t| t.timeline_type.display_name());
-
 	let title = crate::template::render_window_title(
 		&state.config.window_title_template,
 		&crate::template::WindowTitleTemplateVars { app: "Fedra".to_string(), account: handle, timeline },
@@ -121,11 +119,9 @@ pub fn switch_to_account(
 		state.config.active_account_id = Some(new_id);
 		let _ = ConfigStore::new().save(&state.config);
 	}
-
 	state.network_handle = None;
 	let active_id =
 		state.config.active_account_id.clone().or_else(|| state.config.accounts.first().map(|a| a.id.clone()));
-
 	if let Some(id) = &active_id {
 		if let Some(mgr) = state.account_timelines.remove(id) {
 			state.timeline_manager = mgr;
@@ -134,7 +130,6 @@ pub fn switch_to_account(
 			state.cw_expanded = cw;
 		}
 	}
-
 	let Some((url, token)) = state.active_account().and_then(|a| {
 		let url = Url::parse(&a.instance).ok()?;
 		let token = a.access_token.clone()?;
@@ -175,11 +170,9 @@ pub fn switch_to_account(
 			state.current_user_id = active.user_id.clone();
 		}
 	}
-
 	if state.timeline_manager.len() == 0 {
 		let mut loaded_saved = false;
 		let default_timelines = state.config.default_timelines.clone();
-
 		if !state.config.saved_timelines.is_empty() {
 			let saved = std::mem::take(&mut state.config.saved_timelines);
 			for t in saved {
@@ -212,7 +205,6 @@ pub fn switch_to_account(
 						continue;
 					}
 				}
-
 				state.timeline_manager.open(t.clone());
 				if let Some(handle) = &state.network_handle {
 					match t.clone() {
@@ -239,7 +231,6 @@ pub fn switch_to_account(
 			}
 			loaded_saved = state.config.restore_open_timelines;
 		}
-
 		if !loaded_saved {
 			let mut types_to_load = vec![TimelineType::Home, TimelineType::Notifications];
 			for default in &default_timelines {
@@ -257,7 +248,6 @@ pub fn switch_to_account(
 				};
 				types_to_load.push(timeline_type);
 			}
-
 			for t in types_to_load {
 				if state.timeline_manager.open(t.clone())
 					&& let Some(handle) = &state.network_handle
@@ -271,14 +261,11 @@ pub fn switch_to_account(
 			}
 		}
 	}
-
 	let timeline_types: Vec<TimelineType> =
 		state.timeline_manager.iter_mut().map(|t| t.timeline_type.clone()).collect();
 	for tt in timeline_types {
 		start_streaming_for_timeline(state, &tt);
 	}
-
-	// Restore active timeline and selected post position from previous session.
 	if let Some(saved_type) = state.config.saved_active_timeline.take() {
 		if let Some(index) = state.timeline_manager.index_of(&saved_type) {
 			state.timeline_manager.set_active(index);
@@ -291,14 +278,12 @@ pub fn switch_to_account(
 	} else {
 		state.config.saved_selected_post_id = None;
 	}
-
 	timelines_selector.clear();
 	for name in state.timeline_manager.display_names() {
 		timelines_selector.append(&name);
 	}
 	let active_index = state.timeline_manager.active_index();
 	timelines_selector.set_selection(u32::try_from(active_index).unwrap(), true);
-
 	with_suppressed_selection(suppress_selection, || {
 		timeline_list.clear();
 		let view_options = state.timeline_manager.active().map(|a| state.timeline_view_options_for(&a.timeline_type));

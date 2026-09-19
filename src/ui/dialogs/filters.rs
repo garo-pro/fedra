@@ -2,8 +2,10 @@ use std::{cell::RefCell, rc::Rc};
 
 use wxdragon::prelude::*;
 
-use super::common::KEY_RETURN;
-use crate::mastodon::{Filter, FilterAction, FilterContext};
+use crate::{
+	mastodon::{Filter, FilterAction, FilterContext},
+	ui::keys,
+};
 
 #[derive(Clone)]
 pub enum ManageFiltersResult {
@@ -127,7 +129,6 @@ fn prompt_keyword_edit(
 	let dialog = Dialog::builder(parent, title).with_size(400, 200).build();
 	let panel = Panel::builder(&dialog).build();
 	let main_sizer = BoxSizer::builder(Orientation::Vertical).build();
-
 	let keyword_label = StaticText::builder(&panel).with_label("Keyword:").build();
 	let keyword_input = TextCtrl::builder(&panel).with_style(TextCtrlStyle::ProcessEnter).build();
 	if let Some(k) = initial_keyword {
@@ -135,11 +136,9 @@ fn prompt_keyword_edit(
 	}
 	let whole_word_check = CheckBox::builder(&panel).with_label("Whole word").build();
 	whole_word_check.set_value(initial_whole_word);
-
 	main_sizer.add(&keyword_label, 0, SizerFlag::Expand | SizerFlag::Left | SizerFlag::Right | SizerFlag::Top, 8);
 	main_sizer.add(&keyword_input, 0, SizerFlag::Expand | SizerFlag::Left | SizerFlag::Right, 8);
 	main_sizer.add(&whole_word_check, 0, SizerFlag::Expand | SizerFlag::All, 8);
-
 	let buttons_sizer = BoxSizer::builder(Orientation::Horizontal).build();
 	let ok_button = Button::builder(&panel).with_id(ID_OK).with_label("OK").build();
 	ok_button.set_default();
@@ -148,19 +147,17 @@ fn prompt_keyword_edit(
 	buttons_sizer.add(&ok_button, 0, SizerFlag::Right, 8);
 	buttons_sizer.add(&cancel_button, 0, SizerFlag::Right, 8);
 	main_sizer.add_sizer(&buttons_sizer, 0, SizerFlag::Expand | SizerFlag::All, 8);
-
 	panel.set_sizer(main_sizer, true);
 	let dialog_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	dialog_sizer.add(&panel, 1, SizerFlag::Expand, 0);
 	dialog.set_sizer(dialog_sizer, true);
 	dialog.set_affirmative_id(ID_OK);
 	dialog.set_escape_id(ID_CANCEL);
-
 	let input_enter = keyword_input;
 	let dialog_enter = dialog;
 	input_enter.on_key_down(move |event| {
 		if let WindowEventData::Keyboard(ref key_event) = event {
-			if key_event.get_key_code() == Some(KEY_RETURN) && !key_event.shift_down() && !key_event.control_down() {
+			if key_event.get_key_code() == Some(keys::RETURN) && !key_event.shift_down() && !key_event.control_down() {
 				dialog_enter.end_modal(ID_OK);
 				event.skip(false);
 			} else {
@@ -170,13 +167,11 @@ fn prompt_keyword_edit(
 			event.skip(true);
 		}
 	});
-
 	dialog.centre();
 	keyword_input.set_focus();
 	if dialog.show_modal() != ID_OK {
 		return None;
 	}
-
 	let text = keyword_input.get_value();
 	let trimmed = text.trim();
 	if trimmed.is_empty() {
@@ -268,10 +263,8 @@ pub fn prompt_filter_edit(frame: &Frame, existing: Option<&Filter>) -> Option<Fi
 	let add_keyword_button = Button::builder(&panel).with_label("Add Keyword...").build();
 	let edit_keyword_button = Button::builder(&panel).with_label("Edit Keyword...").build();
 	let remove_keyword_button = Button::builder(&panel).with_label("Remove Selected").build();
-
 	main_sizer.add(&keywords_label, 0, SizerFlag::Expand | SizerFlag::Left | SizerFlag::Right | SizerFlag::Top, 8);
 	main_sizer.add(&keywords_list, 1, SizerFlag::Expand | SizerFlag::Left | SizerFlag::Right, 8);
-
 	let keyword_actions_sizer = BoxSizer::builder(Orientation::Horizontal).build();
 	keyword_actions_sizer.add(&add_keyword_button, 0, SizerFlag::Right, 8);
 	keyword_actions_sizer.add(&edit_keyword_button, 0, SizerFlag::Right, 8);
@@ -286,7 +279,6 @@ pub fn prompt_filter_edit(frame: &Frame, existing: Option<&Filter>) -> Option<Fi
 	buttons_sizer.add(&save_button, 0, SizerFlag::Right, 8);
 	buttons_sizer.add(&cancel_button, 0, SizerFlag::Right, 8);
 	main_sizer.add_sizer(&buttons_sizer, 0, SizerFlag::Expand | SizerFlag::All, 8);
-
 	panel.set_sizer(main_sizer, true);
 	let dialog_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	dialog_sizer.add(&panel, 1, SizerFlag::Expand, 0);
@@ -304,7 +296,6 @@ pub fn prompt_filter_edit(frame: &Frame, existing: Option<&Filter>) -> Option<Fi
 			})
 			.collect()
 	});
-
 	let keywords = Rc::new(RefCell::new(initial_keywords));
 	let refresh_keywords = {
 		let keywords = keywords.clone();
@@ -331,7 +322,6 @@ pub fn prompt_filter_edit(frame: &Frame, existing: Option<&Filter>) -> Option<Fi
 	let remove_btn_select = remove_keyword_button;
 	edit_btn_select.enable(false);
 	remove_btn_select.enable(false);
-
 	list_select.on_selection_changed(move |_| {
 		let has_sel = list_select.get_selection().is_some();
 		edit_btn_select.enable(has_sel);
@@ -371,7 +361,6 @@ pub fn prompt_filter_edit(frame: &Frame, existing: Option<&Filter>) -> Option<Fi
 					None => return,
 				}
 			};
-
 			if let Some((new_kw, new_ww)) = prompt_keyword_edit(&dialog_edit, Some(&current_kw), current_whole_word) {
 				let mut k_mut = keywords_edit.borrow_mut();
 				visual_count = 0;
@@ -395,7 +384,6 @@ pub fn prompt_filter_edit(frame: &Frame, existing: Option<&Filter>) -> Option<Fi
 	let refresh_remove = refresh_keywords;
 	let edit_btn_remove = edit_keyword_button;
 	let remove_btn_remove = remove_keyword_button;
-
 	remove_keyword_button.on_click(move |_| {
 		if let Some(sel) = list_remove.get_selection() {
 			let idx = sel as usize;
@@ -421,18 +409,15 @@ pub fn prompt_filter_edit(frame: &Frame, existing: Option<&Filter>) -> Option<Fi
 			}
 		}
 	});
-
 	dialog.centre();
 	title_text.set_focus();
 	if dialog.show_modal() != ID_OK {
 		return None;
 	}
-
 	let title = title_text.get_value().trim().to_string();
 	if title.is_empty() {
 		return None;
 	}
-
 	let mut contexts = Vec::new();
 	for (cb, ctx) in context_checks {
 		if cb.get_value() {
@@ -442,14 +427,12 @@ pub fn prompt_filter_edit(frame: &Frame, existing: Option<&Filter>) -> Option<Fi
 	if contexts.is_empty() {
 		contexts.push(FilterContext::Home);
 	}
-
 	let action = match action_choice.get_selection() {
 		Some(1) => FilterAction::Hide,
 		Some(2) => FilterAction::Blur,
 		Some(3) => custom_action.map_or(FilterAction::Warn, FilterAction::Other),
 		_ => FilterAction::Warn,
 	};
-
 	let expires_in = match expiry_choice.get_selection() {
 		Some(1) => Some(30 * 60),
 		Some(2) => Some(60 * 60),
@@ -459,9 +442,7 @@ pub fn prompt_filter_edit(frame: &Frame, existing: Option<&Filter>) -> Option<Fi
 		Some(6) => Some(7 * 24 * 60 * 60),
 		_ => None,
 	};
-
 	let final_keywords: Vec<(String, String, bool, bool)> =
 		keywords.borrow().iter().map(|k| (k.id.clone(), k.keyword.clone(), k.whole_word, k.destroyed)).collect();
-
 	Some(FilterDialogResult { title, contexts, action, keywords: final_keywords, expires_in })
 }

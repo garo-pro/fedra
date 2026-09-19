@@ -61,10 +61,8 @@ impl ProfileDialog {
 		dialog_sizer.add(&panel, 1, SizerFlag::Expand, 0);
 		dialog.set_sizer(dialog_sizer, true);
 		dialog.set_escape_id(ID_CANCEL);
-
 		let relationship: Rc<RefCell<Option<crate::mastodon::Relationship>>> = Rc::new(RefCell::new(None));
 		let account_rc = Rc::new(RefCell::new(account));
-
 		user_actions::setup_actions_button(
 			panel,
 			actions_button,
@@ -79,17 +77,14 @@ impl ProfileDialog {
 			on_view_timeline();
 			dlg_timeline.close(true);
 		});
-
 		let dlg_close = dialog;
 		close_button.on_click(move |_| {
 			dlg_close.close(true);
 		});
-
 		let on_close_win = on_close;
 		dialog.on_close(move |_| {
 			on_close_win();
 		});
-
 		dialog.centre();
 		Self { dialog, relationship, profile_text, account: account_rc, is_own_account }
 	}
@@ -105,13 +100,10 @@ impl ProfileDialog {
 	pub fn update_account(&self, account: &MastodonAccount) {
 		self.account.replace(account.clone());
 		self.dialog.set_label(&format!("Profile for {}", account.display_name_or_username()));
-
 		let mut text = account.profile_display();
-
 		if let Some(rel) = self.relationship.borrow().clone() {
 			user_actions::append_relationship_text(&mut text, &rel, self.is_own_account);
 		}
-
 		self.profile_text.set_value(&text);
 	}
 
@@ -158,12 +150,10 @@ pub fn prompt_for_mentions(
 	dialog.set_sizer(dialog_sizer, true);
 	dialog.set_affirmative_id(ID_OK);
 	dialog.set_escape_id(ID_CANCEL);
-
 	let dialog_timeline = dialog;
 	timeline_button.on_click(move |_| {
 		dialog_timeline.end_modal(ID_VIEW_TIMELINE);
 	});
-
 	dialog.centre();
 	let result = dialog.show_modal();
 	if result == ID_CANCEL {

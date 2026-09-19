@@ -203,7 +203,6 @@ fn main() {
 		}
 	}));
 	let _ = wxdragon::main(|_| {
-		// let _ = set_appearance(Appearance::System);
 		let instance_checker = SingleInstanceChecker::new("Fedra.SingleInstance", None);
 		if let Some(checker) = instance_checker.as_ref()
 			&& checker.is_another_running()
@@ -254,11 +253,9 @@ fn main() {
 		let app_shell = Rc::new(ui::app_shell::install_app_shell(&frame, ui_tx.clone(), &state.config.hotkey));
 		let app_shell_close = app_shell.clone();
 		state.app_shell = Some(app_shell);
-
 		if state.config.check_for_updates_on_startup {
 			crate::ui::update_check::run_update_check(frame, true);
 		}
-
 		let shutdown_wake = is_shutting_down.clone();
 		let suppress_wake = suppress_selection.clone();
 		let busy_wake = wake_busy;
@@ -341,14 +338,12 @@ fn main() {
 				}
 				last_ui_refresh = Instant::now();
 			}
-
 			busy_wake.set(false);
 			ui_waker_handler.reset();
 			if reschedule_wake.replace(false) {
 				ui_waker_handler.wake();
 			}
 		});
-
 		let refresh_timer = Rc::new(Timer::new(&frame));
 		let ui_tx_timer_poll = ui_tx.clone();
 		refresh_timer.on_tick(move |_| {
@@ -361,7 +356,6 @@ fn main() {
 			ui_alive_destroy.store(false, std::sync::atomic::Ordering::SeqCst);
 			refresh_timer_keepalive.stop();
 		});
-
 		bind_input_handlers(
 			&window_parts,
 			ui_tx.clone(),

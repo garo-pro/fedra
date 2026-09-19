@@ -3,10 +3,11 @@ use std::{cell::RefCell, path::Path, rc::Rc};
 use chrono::{DateTime, Local, LocalResult, NaiveDate, NaiveTime, SecondsFormat, TimeZone, Utc};
 use wxdragon::{event::KeyboardEvent, prelude::*};
 
-use super::common::{KEY_RETURN, show_warning};
+use super::common::show_warning;
 use crate::{
 	config::ContentWarningDisplay,
 	mastodon::{PollLimits, Status},
+	ui::keys,
 };
 
 const DEFAULT_MAX_POST_CHARS: usize = 500;
@@ -139,7 +140,6 @@ fn prompt_for_poll(
 		(259_200, "3 days"),
 		(604_800, "7 days"),
 	];
-
 	let dialog = Dialog::builder(parent, "Manage Poll").with_size(520, 420).build();
 	let panel = Panel::builder(&dialog).build();
 	let main_sizer = BoxSizer::builder(Orientation::Vertical).build();
@@ -474,7 +474,6 @@ fn prompt_for_media(
 			}
 		}
 	});
-
 	let items_remove = items.clone();
 	let media_list_remove = media_list_add;
 	let remove_button_remove = remove_button_add;
@@ -504,7 +503,6 @@ fn prompt_for_media(
 		desc_label_remove.enable(false);
 		desc_text_remove.enable(false);
 	});
-
 	let items_select = items.clone();
 	let desc_label_select = desc_label_remove;
 	let desc_text_select = desc_text_remove;
@@ -534,7 +532,6 @@ fn prompt_for_media(
 			remove_button_select.enable(false);
 		}
 	});
-
 	let items_desc = items.clone();
 	let media_list_desc = media_list_select;
 	desc_text_select.on_text_changed(move |_| {
@@ -548,7 +545,6 @@ fn prompt_for_media(
 			items[index].description = if trimmed.is_empty() { None } else { Some(trimmed.to_string()) };
 		}
 	});
-
 	dialog.centre();
 	let result = dialog.show_modal();
 	if result != ID_OK {
@@ -561,13 +557,11 @@ pub fn prompt_for_vote(frame: &Frame, poll: &crate::mastodon::Poll, post_text: &
 	let dialog = Dialog::builder(frame, "Vote").with_size(400, 500).build();
 	let panel = Panel::builder(&dialog).build();
 	let main_sizer = BoxSizer::builder(Orientation::Vertical).build();
-
 	let post_display = TextCtrl::builder(&panel)
 		.with_value(post_text)
 		.with_style(TextCtrlStyle::MultiLine | TextCtrlStyle::ReadOnly)
 		.build();
 	main_sizer.add(&post_display, 1, SizerFlag::Expand | SizerFlag::All, 8);
-
 	let info_text = if poll.expired {
 		"This poll has expired."
 	} else if poll.voted.unwrap_or(false) {
@@ -579,7 +573,6 @@ pub fn prompt_for_vote(frame: &Frame, poll: &crate::mastodon::Poll, post_text: &
 	};
 	let info_label = StaticText::builder(&panel).with_label(info_text).build();
 	main_sizer.add(&info_label, 0, SizerFlag::Expand | SizerFlag::All, 8);
-
 	let options_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	let mut checkboxes = Vec::new();
 	let mut radio_buttons = Vec::new();
@@ -604,7 +597,6 @@ pub fn prompt_for_vote(frame: &Frame, poll: &crate::mastodon::Poll, post_text: &
 		}
 	}
 	main_sizer.add_sizer(&options_sizer, 1, SizerFlag::Expand | SizerFlag::All, 8);
-
 	if poll.expired || poll.voted.unwrap_or(false) {
 		let total_votes = poll.votes_count.max(1);
 		let results_sizer = BoxSizer::builder(Orientation::Vertical).build();
@@ -618,20 +610,16 @@ pub fn prompt_for_vote(frame: &Frame, poll: &crate::mastodon::Poll, post_text: &
 		}
 		main_sizer.add_sizer(&results_sizer, 0, SizerFlag::Expand | SizerFlag::All, 8);
 	}
-
 	let button_sizer = BoxSizer::builder(Orientation::Horizontal).build();
 	let vote_button = Button::builder(&panel).with_id(ID_OK).with_label("Vote").build();
 	vote_button.set_default();
 	let close_button = Button::builder(&panel).with_id(ID_CANCEL).with_label("Close").build();
-
 	if poll.expired || poll.voted.unwrap_or(false) {
 		vote_button.enable(false);
 	}
-
 	button_sizer.add(&vote_button, 0, SizerFlag::Right, 8);
 	button_sizer.add(&close_button, 0, SizerFlag::Right, 8);
 	main_sizer.add_sizer(&button_sizer, 0, SizerFlag::Expand | SizerFlag::All, 8);
-
 	panel.set_sizer(main_sizer, true);
 	let dialog_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	dialog_sizer.add(&panel, 1, SizerFlag::Expand, 0);
@@ -639,12 +627,10 @@ pub fn prompt_for_vote(frame: &Frame, poll: &crate::mastodon::Poll, post_text: &
 	dialog.set_affirmative_id(ID_OK);
 	dialog.set_escape_id(ID_CANCEL);
 	dialog.centre();
-
 	let result = dialog.show_modal();
 	if result != ID_OK {
 		return None;
 	}
-
 	let mut selected_indices = Vec::new();
 	if poll.multiple {
 		for (i, cb) in checkboxes.iter().enumerate() {
@@ -659,11 +645,9 @@ pub fn prompt_for_vote(frame: &Frame, poll: &crate::mastodon::Poll, post_text: &
 			}
 		}
 	}
-
 	if selected_indices.is_empty() {
 		return None;
 	}
-
 	Some(selected_indices)
 }
 
@@ -744,7 +728,7 @@ fn prompt_for_schedule(parent: &dyn WxWidget, current: Option<&str>) -> Option<O
 	let dialog_enter = dialog;
 	time_input.on_key_down(move |event| {
 		if let WindowEventData::Keyboard(ref key_event) = event {
-			if key_event.get_key_code() == Some(KEY_RETURN) && !key_event.shift_down() && !key_event.control_down() {
+			if key_event.get_key_code() == Some(keys::RETURN) && !key_event.shift_down() && !key_event.control_down() {
 				dialog_enter.end_modal(ID_OK);
 				event.skip(false);
 			} else {
@@ -795,7 +779,6 @@ pub fn prompt_for_compose(
 		Dialog::builder(frame, &format!("{title_prefix} - 0 of {max_chars} characters")).with_size(700, 560).build();
 	let panel = Panel::builder(&dialog).build();
 	let main_sizer = BoxSizer::builder(Orientation::Vertical).build();
-
 	if let Some(quoted_text) = config.quoted_text.clone() {
 		let label = if title_prefix.starts_with("Quote ") {
 			format!("Quoting from {}:", title_prefix.trim_start_matches("Quote "))
@@ -810,7 +793,6 @@ pub fn prompt_for_compose(
 		main_sizer.add(&quote_label, 0, SizerFlag::Expand | SizerFlag::All, 8);
 		main_sizer.add(&quote_text, 0, SizerFlag::Expand | SizerFlag::Left | SizerFlag::Right, 8);
 	}
-
 	let content_label = StaticText::builder(&panel).with_label("&What's on your mind?").build();
 	let content_text = TextCtrl::builder(&panel).with_style(TextCtrlStyle::MultiLine).build();
 	let cw_checkbox = CheckBox::builder(&panel).with_label("&Content warning").build();
@@ -1040,13 +1022,12 @@ pub fn prompt_for_compose(
 			dialog_ok.end_modal(ID_OK);
 		}
 	});
-
 	let dialog_enter = dialog;
 	let content_text_enter = content_text;
 	let title_prefix_enter = title_prefix.clone();
 	dialog.bind_internal(EventType::CHAR_HOOK, move |event| {
 		let key_event = KeyboardEvent::new(event);
-		if key_event.get_key_code() == Some(KEY_RETURN)
+		if key_event.get_key_code() == Some(keys::RETURN)
 			&& key_event.control_down()
 			&& !key_event.shift_down()
 			&& !key_event.alt_down()
@@ -1068,7 +1049,6 @@ pub fn prompt_for_compose(
 			key_event.event.skip(true);
 		}
 	});
-
 	let dialog_enter = dialog;
 	let content_text_enter = content_text;
 	let title_prefix_enter = title_prefix;
@@ -1076,8 +1056,7 @@ pub fn prompt_for_compose(
 		if let WindowEventData::Keyboard(ref key_event) = event {
 			let key = key_event.get_key_code();
 			let should_submit =
-				enter_to_send && key == Some(KEY_RETURN) && !key_event.shift_down() && !key_event.control_down();
-
+				enter_to_send && key == Some(keys::RETURN) && !key_event.shift_down() && !key_event.control_down();
 			if should_submit {
 				let content = content_text_enter.get_value();
 				let char_count = content.trim().chars().count();
@@ -1300,7 +1279,6 @@ pub fn prompt_for_edit(
 		multiple: p.multiple,
 		hide_totals: false, // API doesn't return hide_totals, defaulting to false
 	});
-
 	prompt_for_compose(
 		frame,
 		max_chars,
@@ -1340,7 +1318,6 @@ pub fn prompt_for_quote(
 		_ => PostVisibility::Public,
 	};
 	let quoted_text = quoting.content_with_cw(ContentWarningDisplay::Inline, true);
-
 	prompt_for_compose(
 		frame,
 		max_chars,

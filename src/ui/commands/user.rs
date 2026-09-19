@@ -77,7 +77,6 @@ pub(super) fn view_profile(ctx: &mut UiCommandContext<'_>) {
 			return;
 		}
 	};
-
 	if let Some(url) = foreign_url(state, Some(&account.url)) {
 		state.pending_user_lookup_action = Some(action);
 		if let Some(net) = &state.network_handle {
@@ -85,7 +84,6 @@ pub(super) fn view_profile(ctx: &mut UiCommandContext<'_>) {
 		}
 		return;
 	}
-
 	match action {
 		dialogs::UserLookupAction::Profile => {
 			if let Some(net) = &state.network_handle {
@@ -196,7 +194,6 @@ pub(super) fn open_user_timeline(ctx: &mut UiCommandContext<'_>) {
 			return;
 		}
 	};
-
 	if let Some(url) = foreign_url(state, Some(&account.url)) {
 		state.pending_user_lookup_action = Some(action);
 		if let Some(net) = &state.network_handle {
@@ -204,7 +201,6 @@ pub(super) fn open_user_timeline(ctx: &mut UiCommandContext<'_>) {
 		}
 		return;
 	}
-
 	match action {
 		dialogs::UserLookupAction::Profile => {
 			if let Some(net) = &state.network_handle {
@@ -257,13 +253,11 @@ pub(super) fn open_user_timeline_by_input(ctx: &mut UiCommandContext<'_>) {
 	let mut suggestions: Vec<String> = Vec::new();
 	let mut default_value: Option<String> = None;
 	let self_acct = state.active_account().and_then(|a| a.acct.as_deref()).map(|a| format!("@{a}"));
-
 	let mut push_unique = |suggestions: &mut Vec<String>, handle: String| {
 		if self_acct.as_deref() != Some(handle.as_str()) && !suggestions.contains(&handle) {
 			suggestions.push(handle);
 		}
 	};
-
 	let collect_status_users =
 		|suggestions: &mut Vec<String>, status: &Status, push_unique: &mut dyn FnMut(&mut Vec<String>, String)| {
 			push_unique(suggestions, format!("@{}", status.account.full_acct()));
@@ -277,8 +271,6 @@ pub(super) fn open_user_timeline_by_input(ctx: &mut UiCommandContext<'_>) {
 				push_unique(suggestions, format!("@{}", mention.full_acct()));
 			}
 		};
-
-	// Collect from selected entry first (these appear at the top)
 	if let Some(entry) = get_selected_entry(state) {
 		match entry {
 			TimelineEntry::Status(status) => {
@@ -301,8 +293,6 @@ pub(super) fn open_user_timeline_by_input(ctx: &mut UiCommandContext<'_>) {
 			TimelineEntry::Hashtag(_) => {}
 		}
 	}
-
-	// Collect from all entries in the active timeline
 	if let Some(active) = state.timeline_manager.active() {
 		for entry in &active.entries {
 			match entry {
@@ -372,7 +362,6 @@ pub(super) fn view_mentions(ctx: &mut UiCommandContext<'_>) {
 			}
 			return;
 		}
-
 		let account = if let (Some(client), Some(token)) = (&state.client, &state.access_token) {
 			let by_id = if mention.id.is_empty() { None } else { client.get_account(token, &mention.id).ok() };
 			by_id.or_else(|| client.lookup_account(token, &mention.full_acct()).ok())
@@ -403,7 +392,6 @@ pub(super) fn view_mentions(ctx: &mut UiCommandContext<'_>) {
 				source: None,
 			},
 		};
-
 		match action {
 			dialogs::UserLookupAction::Profile => {
 				if let Some(net) = &state.network_handle {
@@ -415,7 +403,6 @@ pub(super) fn view_mentions(ctx: &mut UiCommandContext<'_>) {
 						name: account.display_name_or_username().to_string(),
 					};
 					let ui_tx_close = ui_tx.clone();
-
 					let dlg = dialogs::ProfileDialog::new(
 						frame,
 						account,
@@ -531,14 +518,11 @@ pub(super) fn toggle_follow(ctx: &mut UiCommandContext<'_>) {
 		return;
 	};
 	let target = status.reblog.as_ref().map_or(status, std::convert::AsRef::as_ref);
-
 	let mut all_users: Vec<crate::mastodon::Account> = Vec::new();
-
 	if status.reblog.is_some() && status.account.id != target.account.id {
 		all_users.push(status.account.clone());
 	}
 	all_users.push(target.account.clone());
-
 	let mut all_mentions: Vec<crate::mastodon::Mention> = target.mentions.clone();
 	for (url, text) in crate::html::extract_mention_links(&target.content) {
 		if all_mentions.iter().any(|m| m.url == url) {
@@ -569,7 +553,6 @@ pub(super) fn toggle_follow(ctx: &mut UiCommandContext<'_>) {
 			});
 		}
 	}
-
 	let selected_user = if all_users.len() == 1 {
 		all_users[0].clone()
 	} else if let Some((acc, _)) =
@@ -579,7 +562,6 @@ pub(super) fn toggle_follow(ctx: &mut UiCommandContext<'_>) {
 	} else {
 		return;
 	};
-
 	if let Some(net) = &state.network_handle {
 		net.send(NetworkCommand::ToggleFollow {
 			account_id: if selected_user.id.is_empty() { None } else { Some(selected_user.id) },

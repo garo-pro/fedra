@@ -981,14 +981,11 @@ mod tests {
 	fn test_key_chord_to_string_and_from_str() {
 		let chord = KeyChord::new(true, true, true, "R");
 		assert_eq!(chord.to_shortcut_string(), "Ctrl+Alt+Shift+R");
-
 		let parsed = KeyChord::parse("ctrl+alt+shift+r").unwrap();
 		assert_eq!(parsed, chord);
-
 		let enter_chord = KeyChord::new(false, false, false, "Enter");
 		assert_eq!(enter_chord.to_shortcut_string(), "Enter");
 		assert_eq!(KeyChord::parse("Enter").unwrap(), enter_chord);
-
 		let alt_enter = KeyChord::new(false, true, false, "Enter");
 		assert_eq!(alt_enter.to_shortcut_string(), "Alt+Enter");
 		assert_eq!(KeyChord::parse("Alt+Enter").unwrap(), alt_enter);
@@ -1000,11 +997,9 @@ mod tests {
 		assert!(chord.matches(82, true, false, true));
 		assert!(!chord.matches(82, true, false, false));
 		assert!(!chord.matches(81, true, false, true));
-
 		let enter_chord = KeyChord::new(false, false, false, "Enter");
 		assert!(enter_chord.matches(13, false, false, false));
 		assert!(!enter_chord.matches(13, false, true, false));
-
 		let f5_chord = KeyChord::new(false, false, false, "F5");
 		assert!(f5_chord.matches(344, false, false, false));
 	}
@@ -1013,10 +1008,8 @@ mod tests {
 	fn test_key_chord_from_key_code() {
 		let chord = KeyChord::from_key_code(13, false, true, false).unwrap();
 		assert_eq!(chord, KeyChord::new(false, true, false, "Enter"));
-
 		let chord_r = KeyChord::from_key_code(82, true, false, true).unwrap();
 		assert_eq!(chord_r, KeyChord::new(true, false, true, "R"));
-
 		let chord_f3 = KeyChord::from_key_code(342, false, false, true).unwrap();
 		assert_eq!(chord_f3, KeyChord::new(false, false, true, "F3"));
 	}
@@ -1025,16 +1018,12 @@ mod tests {
 	fn test_mode_shortcuts_customization_and_reset() {
 		let mut mode = ModeShortcuts::default();
 		assert_eq!(mode.get_chord(ActionId::NewPost, false), Some(KeyChord::new(true, false, false, "N")));
-
 		mode.set_chord(ActionId::NewPost, Some(KeyChord::new(true, true, false, "N")));
 		assert_eq!(mode.get_chord(ActionId::NewPost, false), Some(KeyChord::new(true, true, false, "N")));
-
 		mode.reset_action(ActionId::NewPost);
 		assert_eq!(mode.get_chord(ActionId::NewPost, false), Some(KeyChord::new(true, false, false, "N")));
-
 		mode.set_chord(ActionId::NewPost, None);
 		assert_eq!(mode.get_chord(ActionId::NewPost, false), None);
-
 		mode.reset_all();
 		assert_eq!(mode.get_chord(ActionId::NewPost, false), Some(KeyChord::new(true, false, false, "N")));
 	}
@@ -1044,10 +1033,8 @@ mod tests {
 		let mode = ModeShortcuts::default();
 		let action = mode.find_action(false, 78, true, false, false);
 		assert_eq!(action, Some(ActionId::NewPost));
-
 		let action_f5 = mode.find_action(false, 344, false, false, false);
 		assert_eq!(action_f5, Some(ActionId::Refresh));
-
 		let quick_mode = ModeShortcuts::default();
 		let action_c = quick_mode.find_action(true, 67, false, false, false);
 		assert_eq!(action_c, Some(ActionId::NewPost));
@@ -1057,11 +1044,9 @@ mod tests {
 	fn test_shortcuts_config_serialization() {
 		let mut sc = ShortcutsConfig::default();
 		sc.normal.set_chord(ActionId::Quote, Some(KeyChord::new(true, true, false, "Q")));
-
 		let json = serde_json::to_string(&sc).unwrap();
 		let deserialized: ShortcutsConfig = serde_json::from_str(&json).unwrap();
 		assert_eq!(sc, deserialized);
-
 		let empty_deserialized: ShortcutsConfig = serde_json::from_str("{}").unwrap();
 		assert_eq!(empty_deserialized, ShortcutsConfig::default());
 	}

@@ -91,7 +91,6 @@ pub(super) fn remove_account(ctx: &mut UiCommandContext<'_>, id: String) {
 	state.config.accounts.retain(|a| a.id != id);
 	state.account_timelines.remove(&id);
 	state.account_cw_expanded.remove(&id);
-
 	if is_active {
 		let next_id = state.config.accounts.first().map(|a| a.id.clone());
 		if next_id.is_none() {
@@ -118,9 +117,7 @@ pub(super) fn oauth_result(
 	if let Some(dialog) = state.pending_auth_dialog.take() {
 		dialog.destroy();
 	}
-	// frame.enable(true) is not needed as we don't disable it anymore
 	frame.raise();
-
 	let mut account = Account::new(instance_url.to_string());
 	let client = match MastodonClient::new(instance_url.clone()) {
 		Ok(c) => c,
@@ -132,7 +129,6 @@ pub(super) fn oauth_result(
 			return;
 		}
 	};
-
 	let success = match result {
 		Ok(res) => {
 			account.access_token = Some(res.access_token);
@@ -156,7 +152,6 @@ pub(super) fn oauth_result(
 			}
 		}
 	};
-
 	if success {
 		let id = account.id.clone();
 		state.config.accounts.push(account);

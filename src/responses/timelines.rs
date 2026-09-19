@@ -31,7 +31,6 @@ pub(super) fn loaded(
 		let is_active = active_type == Some(timeline_type);
 		let mut status_snapshots: Vec<Status> = Vec::new();
 		let view_options = state.timeline_view_options_for(timeline_type);
-		// Extract any pending position restore for this timeline's initial load.
 		let timeline_index_opt = state.timeline_manager.index_of(timeline_type);
 		let restore_id = if max_id.is_none() {
 			state
@@ -55,7 +54,6 @@ pub(super) fn loaded(
 				.as_deref()
 				.and_then(|id| state.config.accounts.iter().find(|a| a.id == id).and_then(|a| a.user_id.clone()));
 			let current_user_id = current_user_id_string.as_deref();
-
 			let (new_entries, next_max_id): (Vec<TimelineEntry>, Option<String>) = match data {
 				TimelineData::Statuses(statuses, next) => (
 					statuses
@@ -102,7 +100,6 @@ pub(super) fn loaded(
 					status_snapshots.push(status.clone());
 				}
 			}
-
 			if max_id.is_some() {
 				let existing_ids: std::collections::HashSet<&str> =
 					timeline.entries.iter().map(crate::timeline::TimelineEntry::id).collect();
@@ -114,7 +111,6 @@ pub(super) fn loaded(
 					timeline.entries.extend(filtered);
 				}
 				timeline.next_max_id = next_max_id;
-
 				if is_active && let Some(idx) = timeline_index_opt {
 					update_active_timeline_ui(
 						timeline_list,
@@ -144,7 +140,6 @@ pub(super) fn loaded(
 						timeline.entries = fresh;
 					}
 				}
-				// Restore selected post if it exists in the freshly loaded entries.
 				if let Some(ref id) = restore_id
 					&& timeline.entries.iter().any(|e| e.id() == id.as_str())
 				{
@@ -232,7 +227,6 @@ pub(super) fn search_loaded(
 				results.accounts.iter().map(|a| format!("{}: @{}", a.display_name_or_username(), a.acct)).collect();
 			let label_refs: Vec<&str> = labels.iter().map(String::as_str).collect();
 			let accounts_ref: Vec<&crate::mastodon::Account> = results.accounts.iter().collect();
-
 			if let Some(account) = dialogs::prompt_for_account_choice(dlg.get_dialog(), &accounts_ref, &label_refs)
 				&& let Some(handle) = &state.network_handle
 			{
@@ -243,7 +237,6 @@ pub(super) fn search_loaded(
 			}
 			return;
 		}
-
 		let timeline_type = TimelineType::Search { query, search_type };
 		let is_active = active_type == Some(&timeline_type);
 		let mut status_snapshots: Vec<Status> = Vec::new();

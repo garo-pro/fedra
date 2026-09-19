@@ -172,22 +172,17 @@ pub fn update_menu_labels(menu_bar: &MenuBar, state: &AppState) {
 	let target = status.and_then(|s| s.reblog.as_deref().or(Some(s)));
 	let q = state.config.quick_action_keys;
 	let sc = &state.config.shortcuts;
-
 	let fav_shortcut = sc.get_menu_str(q, ActionId::Favorite);
 	let fav_base = if target.is_some_and(|t| t.favourited) { "Un&favorite" } else { "&Favorite" };
 	set_item_label(menu_bar, ID_FAVORITE, fav_base, &fav_shortcut);
-
 	let bookmark_shortcut = sc.get_menu_str(q, ActionId::Bookmark);
 	let bookmark_base = if target.is_some_and(|t| t.bookmarked) { "Un&bookmark" } else { "&Bookmark" };
 	set_item_label(menu_bar, ID_BOOKMARK, bookmark_base, &bookmark_shortcut);
-
 	let boost_shortcut = sc.get_menu_str(q, ActionId::Boost);
 	let boost_base = if target.is_some_and(|t| t.reblogged) { "Un&boost" } else { "&Boost" };
-
 	if let Some((_, post_menu)) = menu_bar.find_item_and_menu(ID_BOOKMARK) {
 		let is_direct = target.is_some_and(|t| t.visibility == "direct");
 		let boost_exists = post_menu.find_item(ID_BOOST).is_some();
-
 		if is_direct && boost_exists {
 			post_menu.delete(ID_BOOST);
 		} else if !is_direct {
@@ -201,7 +196,6 @@ pub fn update_menu_labels(menu_bar: &MenuBar, state: &AppState) {
 						break;
 					}
 				}
-
 				if let Some(pos) = bookmark_pos {
 					let label = if boost_shortcut.is_empty() {
 						boost_base.to_string()
@@ -224,7 +218,6 @@ pub fn update_menu_labels(menu_bar: &MenuBar, state: &AppState) {
 			if boost_shortcut.is_empty() { boost_base.to_string() } else { format!("{boost_base}\t{boost_shortcut}") };
 		boost_item.set_label(&label);
 	}
-
 	set_item_label(menu_bar, ID_NEW_POST, "&New Post...", &sc.get_menu_str(q, ActionId::NewPost));
 	set_item_label(menu_bar, ID_REPLY, "&Reply...", &sc.get_menu_str(q, ActionId::Reply));
 	set_item_label(menu_bar, ID_REPLY_AUTHOR, "Reply to &Author...", &sc.get_menu_str(q, ActionId::ReplyAuthor));
@@ -246,7 +239,6 @@ pub fn update_menu_labels(menu_bar: &MenuBar, state: &AppState) {
 		&sc.get_menu_str(q, ActionId::ViewQuotedThread),
 	);
 	set_item_label(menu_bar, ID_TOGGLE_FOLLOW, "Toggle &Follow", &sc.get_menu_str(q, ActionId::ToggleFollow));
-
 	if let Some(copy_post_item) = menu_bar.find_item(ID_COPY_POST) {
 		copy_post_item.enable(status.is_some());
 	}
@@ -290,7 +282,6 @@ pub fn update_menu_labels(menu_bar: &MenuBar, state: &AppState) {
 			{
 				item.set_label(&boosts_label);
 			}
-
 			let favorites_exists = post_menu.find_item(ID_VIEW_FAVORITES).is_some();
 			let favorites_shortcut = sc.get_menu_str(q, ActionId::ViewFavorites);
 			let favorites_label = if favorites_shortcut.is_empty() {
@@ -319,7 +310,6 @@ pub fn update_menu_labels(menu_bar: &MenuBar, state: &AppState) {
 	}
 	let is_own = target.is_some_and(|t| Some(&t.account.id) == state.current_user_id.as_ref());
 	let has_poll = target.is_some_and(|t| t.poll.is_some());
-
 	if let Some((_, post_menu)) = menu_bar.find_item_and_menu(ID_VIEW_THREAD) {
 		let mut anchor_pos = None;
 		let count = post_menu.get_item_count();
@@ -331,7 +321,6 @@ pub fn update_menu_labels(menu_bar: &MenuBar, state: &AppState) {
 				break;
 			}
 		}
-
 		if let Some(pos) = anchor_pos {
 			let edit_exists = post_menu.find_item(ID_EDIT_POST).is_some();
 			let edit_shortcut = sc.get_menu_str(q, ActionId::EditPost);
@@ -350,7 +339,6 @@ pub fn update_menu_labels(menu_bar: &MenuBar, state: &AppState) {
 			{
 				item.set_label(&edit_label);
 			}
-
 			let delete_exists = post_menu.find_item(ID_DELETE_POST).is_some();
 			let delete_shortcut = sc.get_menu_str(q, ActionId::DeletePost);
 			let delete_label = if delete_shortcut.is_empty() {
@@ -368,7 +356,6 @@ pub fn update_menu_labels(menu_bar: &MenuBar, state: &AppState) {
 			{
 				item.set_label(&delete_label);
 			}
-
 			let pin_exists = post_menu.find_item(ID_PIN_POST).is_some();
 			if is_own {
 				let is_pinned = target.is_some_and(|t| t.pinned);
@@ -401,7 +388,6 @@ pub fn update_menu_labels(menu_bar: &MenuBar, state: &AppState) {
 			} else if pin_exists {
 				post_menu.delete(ID_PIN_POST);
 			}
-
 			let mut fav_pos = None;
 			for i in 0..post_menu.get_item_count() {
 				if let Some(item) = post_menu.find_item_by_position(i)
@@ -411,7 +397,6 @@ pub fn update_menu_labels(menu_bar: &MenuBar, state: &AppState) {
 					break;
 				}
 			}
-
 			if let Some(f_pos) = fav_pos {
 				let vote_exists = post_menu.find_item(ID_VOTE).is_some();
 				let vote_shortcut = sc.get_menu_str(q, ActionId::Vote);
@@ -429,7 +414,6 @@ pub fn update_menu_labels(menu_bar: &MenuBar, state: &AppState) {
 			}
 		}
 	}
-
 	state.context_menu_state.set(ContextMenuState {
 		favourited: target.is_some_and(|t| t.favourited),
 		reblogged: target.is_some_and(|t| t.reblogged),
@@ -441,7 +425,6 @@ pub fn update_menu_labels(menu_bar: &MenuBar, state: &AppState) {
 		has_favorites: target.is_some_and(|t| t.favourites_count > 0),
 		quick_action_keys: state.config.quick_action_keys,
 	});
-
 	let supports_paging =
 		state.timeline_manager.active().is_some_and(|timeline| timeline.timeline_type.supports_paging());
 	set_item_label(menu_bar, ID_LOAD_MORE, "Load &More", &sc.get_menu_str(q, ActionId::LoadMore));

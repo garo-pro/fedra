@@ -54,7 +54,6 @@ pub(super) fn do_favorite(state: &AppState, live_region: &crate::ui::timeline_li
 		return;
 	};
 	let target = status.reblog.as_ref().map_or(status, std::convert::AsRef::as_ref);
-
 	let is_foreign =
 		matches!(state.timeline_manager.active().map(|t| &t.timeline_type), Some(TimelineType::InstanceLocal { .. }));
 	if is_foreign && let Some(url) = &target.url {
@@ -62,7 +61,6 @@ pub(super) fn do_favorite(state: &AppState, live_region: &crate::ui::timeline_li
 		handle.send(NetworkCommand::ResolveAndInteract { url: url.clone(), interaction });
 		return;
 	}
-
 	let status_id = target.id.clone();
 	if target.favourited {
 		handle.send(NetworkCommand::Unfavorite { status_id });
@@ -81,13 +79,11 @@ pub(super) fn do_bookmark(state: &AppState, live_region: &crate::ui::timeline_li
 		return;
 	};
 	let target = status.reblog.as_ref().map_or(status, std::convert::AsRef::as_ref);
-
 	if let Some(url) = foreign_url(state, target.url.as_ref()) {
 		let interaction = if target.bookmarked { ForeignInteraction::Unbookmark } else { ForeignInteraction::Bookmark };
 		handle.send(NetworkCommand::ResolveAndInteract { url, interaction });
 		return;
 	}
-
 	let status_id = target.id.clone();
 	if target.bookmarked {
 		handle.send(NetworkCommand::Unbookmark { status_id });
@@ -110,7 +106,6 @@ pub(super) fn do_pin(state: &AppState, live_region: &crate::ui::timeline_list::T
 		live_region.announce("You can only pin your own posts");
 		return;
 	}
-
 	let is_foreign =
 		matches!(state.timeline_manager.active().map(|t| &t.timeline_type), Some(TimelineType::InstanceLocal { .. }));
 	if is_foreign && let Some(url) = &target.url {
@@ -118,7 +113,6 @@ pub(super) fn do_pin(state: &AppState, live_region: &crate::ui::timeline_list::T
 		handle.send(NetworkCommand::ResolveAndInteract { url: url.clone(), interaction });
 		return;
 	}
-
 	let status_id = target.id.clone();
 	if target.pinned {
 		handle.send(NetworkCommand::Unpin { status_id });
@@ -141,13 +135,11 @@ pub(super) fn do_boost(state: &AppState, live_region: &crate::ui::timeline_list:
 		live_region.announce("Cannot boost direct messages");
 		return;
 	}
-
 	if let Some(url) = foreign_url(state, target.url.as_ref()) {
 		let interaction = if target.reblogged { ForeignInteraction::Unboost } else { ForeignInteraction::Boost };
 		handle.send(NetworkCommand::ResolveAndInteract { url, interaction });
 		return;
 	}
-
 	let status_id = target.id.clone();
 	if target.reblogged {
 		handle.send(NetworkCommand::Unboost { status_id });
@@ -186,7 +178,6 @@ pub fn run_edit_post_dialog(
 				}
 			})
 			.collect();
-
 		handle.send(NetworkCommand::EditStatus {
 			status_id: target.id.clone(),
 			content: edit.content,
@@ -419,7 +410,6 @@ pub(super) fn delete_post(ctx: &mut UiCommandContext<'_>) {
 		live_region.announce("Could not tell whether this post is yours");
 		return;
 	}
-
 	let confirm = MessageDialog::builder(frame, "Are you sure you want to delete this post?", "Delete Post")
 		.with_style(MessageDialogStyle::YesNo | MessageDialogStyle::IconWarning)
 		.build();
@@ -638,10 +628,8 @@ pub(super) fn open_links(ctx: &mut UiCommandContext<'_>) {
 			links.retain(|link| link.url != *quote_url);
 		}
 	}
-	// Remove duplicates while preserving order
 	let mut seen = std::collections::HashSet::new();
 	links.retain(|link| seen.insert(link.url.clone()));
-
 	if links.is_empty() {
 		live_region.announce("No links in this post");
 		return;
@@ -678,12 +666,10 @@ pub(super) fn play_media(ctx: &mut UiCommandContext<'_>) {
 	} else {
 		target
 	};
-
 	if target.media_attachments.is_empty() {
 		live_region.announce("No media attached to this post");
 		return;
 	}
-
 	let media = if target.media_attachments.len() == 1 {
 		&target.media_attachments[0]
 	} else {
@@ -701,12 +687,8 @@ pub(super) fn play_media(ctx: &mut UiCommandContext<'_>) {
 				name
 			})
 			.collect();
-
-		// SingleChoiceDialog might require &[&str], so map to it just in case
 		let options_refs: Vec<&str> = options.iter().map(AsRef::as_ref).collect();
-
 		let dialog = SingleChoiceDialog::builder(frame, "Select media to play", "Play Media", &options_refs).build();
-
 		if dialog.show_modal() == ID_OK {
 			let selection = dialog.get_selection();
 			if let Ok(idx) = usize::try_from(selection)
@@ -720,7 +702,6 @@ pub(super) fn play_media(ctx: &mut UiCommandContext<'_>) {
 			return;
 		}
 	};
-
 	crate::ui::dialogs::show_media_player(frame, media.url.clone(), &media.kind, state.access_token.clone());
 }
 
@@ -733,15 +714,12 @@ pub(super) fn view_in_browser(ctx: &mut UiCommandContext<'_>) {
 		return;
 	};
 	let target = status.reblog.as_ref().map_or(status, std::convert::AsRef::as_ref);
-
 	let mut options = Vec::new();
 	let mut urls = Vec::new();
-
 	if let Some(url) = &target.url {
 		options.push("Original Post");
 		urls.push(url.clone());
 	}
-
 	if let Some(quote) = &target.quote
 		&& let Some(quoted_status) = &quote.quoted_status
 		&& let Some(quote_url) = &quoted_status.url
@@ -749,18 +727,15 @@ pub(super) fn view_in_browser(ctx: &mut UiCommandContext<'_>) {
 		options.push("Quoted Post");
 		urls.push(quote_url.clone());
 	}
-
 	if options.is_empty() {
 		live_region.announce("Post URL not available");
 		return;
 	}
-
 	let url_to_open = if options.len() == 1 {
 		Some(urls[0].clone())
 	} else {
 		let dialog =
 			SingleChoiceDialog::builder(frame, "Which post do you want to open?", "View in Browser", &options).build();
-
 		if dialog.show_modal() == ID_OK {
 			let selection = dialog.get_selection();
 			if let Ok(idx) = usize::try_from(selection)
@@ -774,7 +749,6 @@ pub(super) fn view_in_browser(ctx: &mut UiCommandContext<'_>) {
 			None
 		}
 	};
-
 	if let Some(url) = url_to_open {
 		live_region.announce("Opening post in browser");
 		let _ = launch_default_browser(&url, BrowserLaunchFlags::Default);
@@ -839,7 +813,6 @@ pub(super) fn recover_draft(ctx: &mut UiCommandContext<'_>) {
 	config.initial_language = pending.last_result.language;
 	config.default_visibility = pending.last_result.visibility;
 	config.initial_thread_mode = pending.last_result.continue_thread;
-
 	let Some((new_post, new_config)) = dialogs::prompt_for_compose(
 		ctx.frame,
 		state.max_post_chars,
@@ -851,14 +824,11 @@ pub(super) fn recover_draft(ctx: &mut UiCommandContext<'_>) {
 	) else {
 		return;
 	};
-
 	let quoted_id = match &pending.operation {
 		crate::PostOperation::Quote { quoted_status_id } => Some(quoted_status_id.clone()),
 		_ => None,
 	};
-
 	let post_data = post_result_to_data(new_post.clone(), quoted_id);
-
 	let cmd = match pending.operation {
 		crate::PostOperation::Reply { ref in_reply_to_id } => NetworkCommand::Reply {
 			in_reply_to_id: in_reply_to_id.clone(),
@@ -899,11 +869,9 @@ pub(super) fn recover_draft(ctx: &mut UiCommandContext<'_>) {
 			NetworkCommand::PostStatus { post: post_data }
 		}
 	};
-
 	state.pending_thread_continuation = new_post.continue_thread;
 	state.pending_post =
 		Some(crate::PendingPost { config: new_config, operation: pending.operation, last_result: new_post });
-
 	if let Some(handle) = &state.network_handle {
 		handle.send(cmd);
 	} else {

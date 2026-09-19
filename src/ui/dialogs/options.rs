@@ -17,12 +17,10 @@ pub fn prompt_for_notification_types(
 	let dialog = Dialog::builder(frame, "Notification Types").with_size(350, 340).build();
 	let panel = Panel::builder(&dialog).build();
 	let main_sizer = BoxSizer::builder(Orientation::Vertical).build();
-
 	let info_label = StaticText::builder(&panel)
 		.with_label("Choose which notification types to receive (sound, popup, and timeline):")
 		.build();
 	main_sizer.add(&info_label, 0, SizerFlag::Expand | SizerFlag::All, 10);
-
 	let mut checkboxes = Vec::new();
 	for kind in NotificationKind::all() {
 		let cb = CheckBox::builder(&panel).with_label(kind.display_name()).build();
@@ -30,7 +28,6 @@ pub fn prompt_for_notification_types(
 		main_sizer.add(&cb, 0, SizerFlag::Expand | SizerFlag::Left | SizerFlag::Right | SizerFlag::Bottom, 10);
 		checkboxes.push((cb, *kind));
 	}
-
 	let button_sizer = BoxSizer::builder(Orientation::Horizontal).build();
 	let ok_button = Button::builder(&panel).with_id(ID_OK).with_label("OK").build();
 	ok_button.set_default();
@@ -39,7 +36,6 @@ pub fn prompt_for_notification_types(
 	button_sizer.add(&ok_button, 0, SizerFlag::Right, 8);
 	button_sizer.add(&cancel_button, 0, SizerFlag::Right, 8);
 	main_sizer.add_sizer(&button_sizer, 0, SizerFlag::Expand | SizerFlag::All, 10);
-
 	panel.set_sizer(main_sizer, true);
 	let dialog_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	dialog_sizer.add(&panel, 1, SizerFlag::Expand, 0);
@@ -47,7 +43,6 @@ pub fn prompt_for_notification_types(
 	dialog.set_affirmative_id(ID_OK);
 	dialog.set_escape_id(ID_CANCEL);
 	dialog.centre();
-
 	if dialog.show_modal() == ID_OK {
 		let mut disabled = Vec::new();
 		for (cb, kind) in checkboxes {
@@ -65,11 +60,9 @@ pub fn prompt_for_default_timelines(frame: &Frame, initial: &[DefaultTimeline]) 
 	let dialog = Dialog::builder(frame, "Default Timelines").with_size(350, 300).build();
 	let panel = Panel::builder(&dialog).build();
 	let main_sizer = BoxSizer::builder(Orientation::Vertical).build();
-
 	let info_label =
 		StaticText::builder(&panel).with_label("Select additional timelines to open automatically on startup:").build();
 	main_sizer.add(&info_label, 0, SizerFlag::Expand | SizerFlag::All, 10);
-
 	let mut checkboxes = Vec::new();
 	for timeline in DefaultTimeline::all() {
 		let cb = CheckBox::builder(&panel).with_label(timeline.display_name()).build();
@@ -77,7 +70,6 @@ pub fn prompt_for_default_timelines(frame: &Frame, initial: &[DefaultTimeline]) 
 		main_sizer.add(&cb, 0, SizerFlag::Expand | SizerFlag::Left | SizerFlag::Right | SizerFlag::Bottom, 10);
 		checkboxes.push((cb, *timeline));
 	}
-
 	let button_sizer = BoxSizer::builder(Orientation::Horizontal).build();
 	let ok_button = Button::builder(&panel).with_id(ID_OK).with_label("OK").build();
 	ok_button.set_default();
@@ -86,7 +78,6 @@ pub fn prompt_for_default_timelines(frame: &Frame, initial: &[DefaultTimeline]) 
 	button_sizer.add(&ok_button, 0, SizerFlag::Right, 8);
 	button_sizer.add(&cancel_button, 0, SizerFlag::Right, 8);
 	main_sizer.add_sizer(&button_sizer, 0, SizerFlag::Expand | SizerFlag::All, 10);
-
 	panel.set_sizer(main_sizer, true);
 	let dialog_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	dialog_sizer.add(&panel, 1, SizerFlag::Expand, 0);
@@ -94,7 +85,6 @@ pub fn prompt_for_default_timelines(frame: &Frame, initial: &[DefaultTimeline]) 
 	dialog.set_affirmative_id(ID_OK);
 	dialog.set_escape_id(ID_CANCEL);
 	dialog.centre();
-
 	if dialog.show_modal() == ID_OK {
 		let mut selected = Vec::new();
 		for (cb, timeline) in checkboxes {
@@ -112,7 +102,6 @@ fn prompt_for_hotkey(parent: &dyn WxWidget, initial: &HotkeyConfig) -> Option<Ho
 	let dialog = Dialog::builder(parent, "Window Hotkey").with_size(300, 230).build();
 	let panel = Panel::builder(&dialog).build();
 	let main_sizer = BoxSizer::builder(Orientation::Vertical).build();
-
 	let ctrl_cb = CheckBox::builder(&panel).with_label("&Ctrl").build();
 	ctrl_cb.set_value(initial.ctrl);
 	let alt_cb = CheckBox::builder(&panel).with_label("&Alt").build();
@@ -121,12 +110,10 @@ fn prompt_for_hotkey(parent: &dyn WxWidget, initial: &HotkeyConfig) -> Option<Ho
 	shift_cb.set_value(initial.shift);
 	let win_cb = CheckBox::builder(&panel).with_label("&Win").build();
 	win_cb.set_value(initial.win);
-
 	main_sizer.add(&ctrl_cb, 0, SizerFlag::Expand | SizerFlag::Left | SizerFlag::Right | SizerFlag::Top, 10);
 	main_sizer.add(&alt_cb, 0, SizerFlag::Expand | SizerFlag::Left | SizerFlag::Right, 10);
 	main_sizer.add(&shift_cb, 0, SizerFlag::Expand | SizerFlag::Left | SizerFlag::Right, 10);
 	main_sizer.add(&win_cb, 0, SizerFlag::Expand | SizerFlag::Left | SizerFlag::Right, 10);
-
 	let key_label = StaticText::builder(&panel).with_label("&Key:").build();
 	let key_text = TextCtrl::builder(&panel).build();
 	key_text.set_value(&hotkey_key_display_name(initial.key));
@@ -134,7 +121,6 @@ fn prompt_for_hotkey(parent: &dyn WxWidget, initial: &HotkeyConfig) -> Option<Ho
 	key_sizer.add(&key_label, 0, SizerFlag::AlignCenterVertical | SizerFlag::Right, 8);
 	key_sizer.add(&key_text, 1, SizerFlag::Expand, 0);
 	main_sizer.add_sizer(&key_sizer, 0, SizerFlag::Expand | SizerFlag::All, 10);
-
 	let button_sizer = BoxSizer::builder(Orientation::Horizontal).build();
 	let ok_button = Button::builder(&panel).with_id(ID_OK).with_label("OK").build();
 	ok_button.set_default();
@@ -143,7 +129,6 @@ fn prompt_for_hotkey(parent: &dyn WxWidget, initial: &HotkeyConfig) -> Option<Ho
 	button_sizer.add(&ok_button, 0, SizerFlag::Right, 8);
 	button_sizer.add(&cancel_button, 0, SizerFlag::Right, 8);
 	main_sizer.add_sizer(&button_sizer, 0, SizerFlag::Expand | SizerFlag::All, 10);
-
 	panel.set_sizer(main_sizer, true);
 	let dialog_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	dialog_sizer.add(&panel, 1, SizerFlag::Expand, 0);
@@ -151,14 +136,11 @@ fn prompt_for_hotkey(parent: &dyn WxWidget, initial: &HotkeyConfig) -> Option<Ho
 	dialog.set_affirmative_id(ID_OK);
 	dialog.set_escape_id(ID_CANCEL);
 	dialog.centre();
-
 	if dialog.show_modal() != ID_OK {
 		return None;
 	}
-
 	let key_value = key_text.get_value();
 	let key_char = parse_hotkey_key(&key_value).unwrap_or(initial.key);
-
 	Some(HotkeyConfig {
 		ctrl: ctrl_cb.get_value(),
 		alt: alt_cb.get_value(),
@@ -291,7 +273,6 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 	quick_action_checkbox.set_value(quick_action_keys);
 	let update_checkbox = CheckBox::builder(&general_panel).with_label("Check for &updates on startup").build();
 	update_checkbox.set_value(check_for_updates);
-
 	let channel_label = StaticText::builder(&general_panel).with_label("Updates:").build();
 	let channel_choices = vec!["Stable releases".to_string(), "Test builds".to_string()];
 	let channel_choice =
@@ -304,7 +285,6 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 	let channel_sizer = BoxSizer::builder(Orientation::Horizontal).build();
 	channel_sizer.add(&channel_label, 0, SizerFlag::AlignCenterVertical | SizerFlag::Right, 8);
 	channel_sizer.add(&channel_choice, 1, SizerFlag::Expand, 0);
-
 	let notification_label = StaticText::builder(&general_panel).with_label("Notifications:").build();
 	let notification_choices =
 		vec!["Classic Windows Notifications".to_string(), "Sound only".to_string(), "Disabled".to_string()];
@@ -422,10 +402,8 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 	sort_checkbox.set_value(sort_order == SortOrder::OldestToNewest);
 	let thread_order_checkbox = CheckBox::builder(&timeline_panel).with_label("Always preserve thread &order").build();
 	thread_order_checkbox.set_value(preserve_thread_order);
-
 	let find_load_checkbox = CheckBox::builder(&timeline_panel).with_label("Load more on find &next").build();
 	find_load_checkbox.set_value(find_loading_mode == crate::config::FindLoadingMode::LoadOnNext);
-
 	timeline_sizer.add_sizer(&autoload_sizer, 0, SizerFlag::Expand | SizerFlag::All, 8);
 	timeline_sizer.add_sizer(&fetch_limit_sizer, 0, SizerFlag::Expand | SizerFlag::All, 8);
 	timeline_sizer.add_sizer(&cw_sizer, 0, SizerFlag::Expand | SizerFlag::All, 8);
@@ -556,10 +534,8 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 	template_sizer.add_sizer(&template_button_sizer, 0, SizerFlag::Expand | SizerFlag::All, 8);
 	template_panel.set_sizer(template_sizer, true);
 	notebook.add_page(&template_panel, "Templates", false, None);
-
 	let filters_panel = Panel::builder(&notebook).with_style(PanelStyle::TabTraversal).build();
 	let filters_sizer = BoxSizer::builder(Orientation::Vertical).build();
-
 	let filter_timeline_keys: Vec<&str> = vec![
 		"Home",
 		"Notifications",
@@ -582,10 +558,8 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 	filter_timeline_sizer.add(&filter_timeline_label, 0, SizerFlag::AlignCenterVertical | SizerFlag::Right, 8);
 	filter_timeline_sizer.add(&filter_timeline_choice, 1, SizerFlag::Expand, 0);
 	filters_sizer.add_sizer(&filter_timeline_sizer, 0, SizerFlag::Expand | SizerFlag::All, 8);
-
 	let what_to_filter_sizer =
 		StaticBoxSizerBuilder::new_with_label(Orientation::Vertical, &filters_panel, "What to filter").build();
-
 	let cb_original = CheckBox::builder(&filters_panel).with_label("Original posts (not replies or boosts)").build();
 	what_to_filter_sizer.add(
 		&cb_original,
@@ -593,7 +567,6 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 		SizerFlag::Expand | SizerFlag::Left | SizerFlag::Right | SizerFlag::Bottom,
 		5,
 	);
-
 	let cb_replies_others = CheckBox::builder(&filters_panel).with_label("Replies to others").build();
 	what_to_filter_sizer.add(
 		&cb_replies_others,
@@ -601,7 +574,6 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 		SizerFlag::Expand | SizerFlag::Left | SizerFlag::Right | SizerFlag::Bottom,
 		5,
 	);
-
 	let cb_replies_me = CheckBox::builder(&filters_panel).with_label("Replies to me").build();
 	what_to_filter_sizer.add(
 		&cb_replies_me,
@@ -609,7 +581,6 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 		SizerFlag::Expand | SizerFlag::Left | SizerFlag::Right | SizerFlag::Bottom,
 		5,
 	);
-
 	let cb_threads = CheckBox::builder(&filters_panel).with_label("Threads (self-replies)").build();
 	what_to_filter_sizer.add(
 		&cb_threads,
@@ -617,7 +588,6 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 		SizerFlag::Expand | SizerFlag::Left | SizerFlag::Right | SizerFlag::Bottom,
 		5,
 	);
-
 	let cb_boosts = CheckBox::builder(&filters_panel).with_label("Boosts").build();
 	what_to_filter_sizer.add(
 		&cb_boosts,
@@ -625,7 +595,6 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 		SizerFlag::Expand | SizerFlag::Left | SizerFlag::Right | SizerFlag::Bottom,
 		5,
 	);
-
 	let cb_quotes = CheckBox::builder(&filters_panel).with_label("Quote posts").build();
 	what_to_filter_sizer.add(
 		&cb_quotes,
@@ -633,7 +602,6 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 		SizerFlag::Expand | SizerFlag::Left | SizerFlag::Right | SizerFlag::Bottom,
 		5,
 	);
-
 	let cb_media = CheckBox::builder(&filters_panel).with_label("Posts with media").build();
 	what_to_filter_sizer.add(
 		&cb_media,
@@ -641,7 +609,6 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 		SizerFlag::Expand | SizerFlag::Left | SizerFlag::Right | SizerFlag::Bottom,
 		5,
 	);
-
 	let cb_no_media = CheckBox::builder(&filters_panel).with_label("Posts without media").build();
 	what_to_filter_sizer.add(
 		&cb_no_media,
@@ -649,7 +616,6 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 		SizerFlag::Expand | SizerFlag::Left | SizerFlag::Right | SizerFlag::Bottom,
 		5,
 	);
-
 	let cb_your_posts = CheckBox::builder(&filters_panel).with_label("Your posts").build();
 	what_to_filter_sizer.add(
 		&cb_your_posts,
@@ -657,7 +623,6 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 		SizerFlag::Expand | SizerFlag::Left | SizerFlag::Right | SizerFlag::Bottom,
 		5,
 	);
-
 	let cb_your_replies = CheckBox::builder(&filters_panel).with_label("Your replies").build();
 	what_to_filter_sizer.add(
 		&cb_your_replies,
@@ -665,12 +630,9 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 		SizerFlag::Expand | SizerFlag::Left | SizerFlag::Right | SizerFlag::Bottom,
 		5,
 	);
-
 	filters_sizer.add_sizer(&what_to_filter_sizer, 0, SizerFlag::Expand | SizerFlag::All, 10);
-
 	filters_panel.set_sizer(filters_sizer, true);
 	notebook.add_page(&filters_panel, "Filters", false, None);
-
 	let filters_state = Rc::new(RefCell::new(filters));
 	let current_filter_key = Rc::new(RefCell::new("Home".to_string()));
 	{
@@ -730,7 +692,6 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 		cb_your_posts.set_value(!new_filter.your_posts);
 		cb_your_replies.set_value(!new_filter.your_replies);
 	});
-
 	let setup_cb_handler = |cb: &CheckBox, ufs: Rc<dyn Fn()>| {
 		cb.on_toggled(move |_| {
 			ufs();
