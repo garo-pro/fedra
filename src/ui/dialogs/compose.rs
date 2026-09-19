@@ -820,9 +820,9 @@ pub fn prompt_for_compose(
 	let content_type_label = StaticText::builder(&panel).with_label("Content &type (if supported):").build();
 	let content_type_options = [
 		("Default".to_string(), None),
-		("Plain text (text/plain)".to_string(), Some("text/plain".to_string())),
-		("Markdown (text/markdown)".to_string(), Some("text/markdown".to_string())),
-		("HTML (text/html)".to_string(), Some("text/html".to_string())),
+		("Plain text".to_string(), Some("text/plain".to_string())),
+		("Markdown".to_string(), Some("text/markdown".to_string())),
+		("HTML".to_string(), Some("text/html".to_string())),
 	];
 	let content_type_labels: Vec<String> = content_type_options.iter().map(|(label, _)| label.clone()).collect();
 	let content_type_choice = Choice::builder(&panel).with_choices(content_type_labels).build();
