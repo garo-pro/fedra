@@ -268,11 +268,11 @@ pub fn update_menu_labels(menu_bar: &MenuBar, state: &AppState) {
 			let boosts = target.map_or(0, |t| t.reblogs_count);
 			let favorites = target.map_or(0, |t| t.favourites_count);
 			let boosts_exists = post_menu.find_item(ID_VIEW_BOOSTS).is_some();
-			let boosts_shortcut = sc.get_menu_str(q, ActionId::ViewBoosts);
-			let boosts_label = if boosts_shortcut.is_empty() {
+			let view_boosts_shortcut = sc.get_menu_str(q, ActionId::ViewBoosts);
+			let boosts_label = if view_boosts_shortcut.is_empty() {
 				"&View Boosts".to_string()
 			} else {
-				format!("&View Boosts\t{boosts_shortcut}")
+				format!("&View Boosts\t{view_boosts_shortcut}")
 			};
 			if boosts > 0 && !boosts_exists {
 				post_menu.insert(

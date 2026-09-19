@@ -429,18 +429,15 @@ pub fn bind_input_handlers(
 			if !quick_mode
 				&& !ctrl && !shift
 				&& !alt && (32..=126).contains(&k)
-				&& let Some(ch) = char::from_u32(k as u32)
+				&& let Some(ch) = u32::try_from(k).ok().and_then(char::from_u32)
 				&& ch.is_alphanumeric()
 			{
 				timeline_list_key.type_ahead(ch);
 				event.skip(false);
 				return;
 			}
-
-			event.skip(true);
-		} else {
-			event.skip(true);
 		}
+		event.skip(true);
 	});
 
 	let shutdown_ctx = is_shutting_down.clone();
@@ -579,7 +576,7 @@ pub fn bind_input_handlers(
 		let Ok(selection) = usize::try_from(sel) else { return };
 		let _ = ui_tx_list.send(UiCommand::TimelineEntrySelectionChanged(selection));
 		if autoload_mode_selection.get() == AutoloadMode::AtEnd {
-			let count = timeline_list_sel.get_count() as usize;
+			let count = usize::try_from(timeline_list_sel.get_count()).unwrap_or(0);
 			let sort_order = sort_order_selection.get();
 			let is_oldest = sort_order == SortOrder::OldestToNewest && selection == 0;
 			let is_newest = sort_order == SortOrder::NewestToOldest && selection + 1 == count;

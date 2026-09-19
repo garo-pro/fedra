@@ -45,6 +45,7 @@ pub enum PostSubmission {
 
 #[derive(Debug, Clone, Deserialize)]
 #[allow(dead_code)]
+#[allow(clippy::struct_excessive_bools, reason = "mirrors the fields the Mastodon API sends")]
 pub struct Status {
 	pub id: String,
 	pub url: Option<String>,
@@ -130,16 +131,13 @@ pub struct Mention {
 
 impl Mention {
 	pub fn full_acct(&self) -> String {
-		if self.acct.contains('@') {
-			self.acct.clone()
-		} else {
-			if let Ok(url) = reqwest::Url::parse(&self.url)
-				&& let Some(host) = url.host_str()
-			{
-				return format!("{}@{}", self.acct, host);
-			}
-			self.acct.clone()
+		if !self.acct.contains('@')
+			&& let Ok(url) = reqwest::Url::parse(&self.url)
+			&& let Some(host) = url.host_str()
+		{
+			return format!("{}@{}", self.acct, host);
 		}
+		self.acct.clone()
 	}
 }
 

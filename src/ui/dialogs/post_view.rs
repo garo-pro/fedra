@@ -16,10 +16,7 @@ fn strip_quote_html(html: &str) -> String {
 		return cleaned;
 	}
 
-	let mut start_idx = 0;
-	if html.starts_with("<p>") {
-		start_idx = 3;
-	}
+	let start_idx = usize::from(html.starts_with("<p>")) * 3;
 
 	if let Some(re_idx) = html[start_idx..].find("RE: ")
 		&& re_idx < 30
@@ -51,15 +48,13 @@ fn strip_quote_html(html: &str) -> String {
 		}
 
 		let prefix = &html[..actual_re_idx];
-		if prefix == "<p>" {
-			if rest.starts_with("<p>") {
-				return rest.to_string();
-			} else {
-				return format!("<p>{}", rest);
-			}
-		} else {
-			return format!("{}{}", prefix, rest);
+		if prefix != "<p>" {
+			return format!("{prefix}{rest}");
 		}
+		if rest.starts_with("<p>") {
+			return rest.to_string();
+		}
+		return format!("<p>{rest}");
 	}
 	html.to_string()
 }
@@ -100,12 +95,11 @@ pub fn show_post_view_dialog(parent: &Frame, status: &Status) -> Option<UiComman
 		};
 
 		content = format!(
-			"{}
+			"{content}
 			<blockquote style=\"border-left: 4px solid #ccc; margin-left: 0; padding-left: 10px; color: #555;\">
-				<strong>{} <small>({})</small></strong>
-				{}
-			</blockquote>",
-			content, quote_author, quote_acct, quote_content
+				<strong>{quote_author} <small>({quote_acct})</small></strong>
+				{quote_content}
+			</blockquote>"
 		);
 	}
 

@@ -696,7 +696,7 @@ pub(super) fn play_media(ctx: &mut UiCommandContext<'_>) {
 				if let Some(desc) = &m.description
 					&& !desc.is_empty()
 				{
-					return format!("{} - {}", name, desc);
+					return format!("{name} - {desc}");
 				}
 				name
 			})
@@ -860,7 +860,6 @@ pub(super) fn recover_draft(ctx: &mut UiCommandContext<'_>) {
 	let post_data = post_result_to_data(new_post.clone(), quoted_id);
 
 	let cmd = match pending.operation {
-		crate::PostOperation::NewPost => NetworkCommand::PostStatus { post: post_data },
 		crate::PostOperation::Reply { ref in_reply_to_id } => NetworkCommand::Reply {
 			in_reply_to_id: in_reply_to_id.clone(),
 			content: post_data.content,
@@ -896,7 +895,9 @@ pub(super) fn recover_draft(ctx: &mut UiCommandContext<'_>) {
 				poll: post_data.poll,
 			}
 		}
-		crate::PostOperation::Quote { .. } => NetworkCommand::PostStatus { post: post_data },
+		crate::PostOperation::NewPost | crate::PostOperation::Quote { .. } => {
+			NetworkCommand::PostStatus { post: post_data }
+		}
 	};
 
 	state.pending_thread_continuation = new_post.continue_thread;

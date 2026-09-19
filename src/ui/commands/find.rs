@@ -181,30 +181,28 @@ pub(super) fn find_prev(ctx: &mut UiCommandContext<'_>) {
 						active.pending_find_prev = true;
 						live_region.announce("Loading more...");
 						handle_ui_command(UiCommand::LoadMore, ctx);
-					} else {
-						if let Some(index) = active.find_prev(active.entries.len(), &state.config) {
-							let list_index = crate::ui::timeline_view::entry_index_to_list_index(
-								index,
+					} else if let Some(index) = active.find_prev(active.entries.len(), &state.config) {
+						let list_index = crate::ui::timeline_view::entry_index_to_list_index(
+							index,
+							active.entries.len(),
+							active.effective_sort_order(&state.config),
+						);
+						if let Some(idx) = list_index {
+							active.selected_index = Some(idx);
+							active.selected_id = crate::ui::timeline_view::list_index_to_entry_index(
+								idx,
 								active.entries.len(),
-								active.effective_sort_order(&state.config),
-							);
-							if let Some(idx) = list_index {
-								active.selected_index = Some(idx);
-								active.selected_id = crate::ui::timeline_view::list_index_to_entry_index(
-									idx,
-									active.entries.len(),
-									effective_sort_order,
-								)
-								.map(|entry_index| active.entries[entry_index].id().to_string());
+								effective_sort_order,
+							)
+							.map(|entry_index| active.entries[entry_index].id().to_string());
 
-								timeline_list.set_selection(
-									active.selected_id.as_deref().map(crate::ui::timeline_view::entry_id_to_node_id),
-								);
-								live_region.announce("Wrapped to bottom");
-							}
-						} else {
-							live_region.announce("No matches found");
+							timeline_list.set_selection(
+								active.selected_id.as_deref().map(crate::ui::timeline_view::entry_id_to_node_id),
+							);
+							live_region.announce("Wrapped to bottom");
 						}
+					} else {
+						live_region.announce("No matches found");
 					}
 				}
 			}

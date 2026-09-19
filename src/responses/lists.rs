@@ -34,14 +34,14 @@ pub(super) fn fetched(ctx: &mut NetworkResponseContext<'_>, lists: Vec<List>) {
 }
 
 /// Announces a change to the set of lists and refetches it.
-pub(super) fn changed(ctx: &mut NetworkResponseContext<'_>, message: &str) {
+pub(super) fn changed(ctx: &NetworkResponseContext<'_>, message: &str) {
 	ctx.announce(message);
 	if let Some(handle) = &ctx.state.network_handle {
 		handle.send(NetworkCommand::FetchLists);
 	}
 }
 
-pub(super) fn membership_changed(ctx: &mut NetworkResponseContext<'_>, message: &str) {
+pub(super) fn membership_changed(ctx: &NetworkResponseContext<'_>, message: &str) {
 	ctx.announce(message);
 	if let Some(dlg) = &ctx.state.manage_list_members_dialog
 		&& let Some(handle) = &ctx.state.network_handle

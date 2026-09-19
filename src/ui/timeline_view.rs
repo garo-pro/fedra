@@ -94,7 +94,7 @@ pub const fn entry_index_to_list_index(entry_index: usize, entries_len: usize, s
 	}
 }
 
-pub fn sync_timeline_selection_from_list(
+pub const fn sync_timeline_selection_from_list(
 	_timeline: &mut Timeline,
 	_timeline_list: &TimelineList,
 	_sort_order: SortOrder,

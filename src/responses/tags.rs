@@ -25,7 +25,7 @@ pub(super) fn following_changed<T>(
 	}
 }
 
-pub(super) fn muted_changed<T>(ctx: &mut NetworkResponseContext<'_>, name: &str, result: &Result<T>, muted: bool) {
+pub(super) fn muted_changed<T>(ctx: &NetworkResponseContext<'_>, name: &str, result: &Result<T>, muted: bool) {
 	match result {
 		Ok(_) => {
 			if let Some(dlg) = &ctx.state.hashtag_dialog {

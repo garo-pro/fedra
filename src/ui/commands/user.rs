@@ -572,21 +572,19 @@ pub(super) fn toggle_follow(ctx: &mut UiCommandContext<'_>) {
 
 	let selected_user = if all_users.len() == 1 {
 		all_users[0].clone()
+	} else if let Some((acc, _)) =
+		dialogs::prompt_for_account_list(frame, "Select User", "Select user to follow/unfollow:", &all_users)
+	{
+		acc
 	} else {
-		if let Some((acc, _)) =
-			dialogs::prompt_for_account_list(frame, "Select User", "Select user to follow/unfollow:", &all_users)
-		{
-			acc
-		} else {
-			return;
-		}
+		return;
 	};
 
 	if let Some(net) = &state.network_handle {
 		net.send(NetworkCommand::ToggleFollow {
 			account_id: if selected_user.id.is_empty() { None } else { Some(selected_user.id) },
 			acct: selected_user.acct.clone(),
-			target_name: selected_user.username.clone(),
+			target_name: selected_user.username,
 		});
 	} else {
 		live_region.announce("Network not available");

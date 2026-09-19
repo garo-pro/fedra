@@ -28,7 +28,7 @@ fn print_help() {
 
 fn release() -> Result<(), Box<dyn Error>> {
 	let cargo = env::var("CARGO").unwrap_or_else(|_| "cargo".to_string());
-	let status = Command::new(cargo).current_dir(project_root()).args(&["build", "--release"]).status()?;
+	let status = Command::new(cargo).current_dir(project_root()).args(["build", "--release"]).status()?;
 	if !status.success() {
 		return Err("Cargo build failed".into());
 	}
@@ -43,7 +43,7 @@ fn release() -> Result<(), Box<dyn Error>> {
 	println!("Packaging binaries and docs...");
 	build_zip_package(&target_dir, &exe_path, &readme_path, &sounds_dir)?;
 	if cfg!(windows) {
-		build_windows_installer(&target_dir)?;
+		build_windows_installer(&target_dir);
 	}
 	Ok(())
 }
@@ -89,7 +89,7 @@ fn build_zip_package(
 			let entry = entry?;
 			let path = entry.path();
 			let name = path.strip_prefix(sounds_dir.parent().unwrap())?;
-			let name_str = name.to_string_lossy().replace("\\", "/");
+			let name_str = name.to_string_lossy().replace('\\', "/");
 			if path.is_file() {
 				zip.start_file(name_str, options)?;
 				let mut f = File::open(path)?;
@@ -106,16 +106,15 @@ fn build_zip_package(
 	Ok(())
 }
 
-fn build_windows_installer(target_dir: &Path) -> io::Result<()> {
+fn build_windows_installer(target_dir: &Path) {
 	let iss_path = target_dir.join("fedra.iss");
 	if !iss_path.exists() {
 		println!("Skipping installer: fedra.iss not found.");
-		return Ok(());
+		return;
 	}
 	let status = Command::new("ISCC.exe").arg(&iss_path).status();
 	match status {
 		Ok(s) if s.success() => println!("Installer created successfully."),
 		_ => println!("Failed to run Inno Setup (ISCC.exe). Is it in your PATH?"),
 	}
-	Ok(())
 }

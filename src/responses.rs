@@ -90,7 +90,7 @@ impl NetworkResponseContext<'_> {
 		}
 	}
 
-	fn refresh_menu_labels(&mut self) {
+	fn refresh_menu_labels(&self) {
 		if let Some(mb) = self.frame.get_menu_bar() {
 			update_menu_labels(&mb, self.state);
 		}
@@ -114,7 +114,7 @@ fn handle_response(
 ) {
 	match response {
 		NetworkResponse::TimelineLoaded { timeline_type, result: Ok(data), max_id } => {
-			timelines::loaded(ctx, timeline_type, data, max_id, active_type);
+			timelines::loaded(ctx, &timeline_type, data, max_id.as_deref(), active_type);
 		}
 		NetworkResponse::TimelineLoaded { timeline_type, result: Err(err), max_id } => {
 			timelines::load_failed(ctx, &timeline_type, &err, max_id.is_some());

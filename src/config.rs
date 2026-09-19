@@ -392,6 +392,7 @@ impl ActionId {
 		}
 	}
 
+	#[allow(clippy::match_same_arms, reason = "one arm per action keeps the default table readable")]
 	pub fn default_chord(self, quick: bool) -> Option<KeyChord> {
 		if quick {
 			match self {
@@ -533,14 +534,9 @@ pub struct ModeShortcuts {
 
 impl ModeShortcuts {
 	pub fn get_chord(&self, action: ActionId, is_quick: bool) -> Option<KeyChord> {
-		if let Some(entry) = self.bindings.get(&action) {
-			match entry {
-				Some(s) => KeyChord::parse(s),
-				None => None,
-			}
-		} else {
-			action.default_chord(is_quick)
-		}
+		self.bindings
+			.get(&action)
+			.map_or_else(|| action.default_chord(is_quick), |entry| entry.as_ref().and_then(|s| KeyChord::parse(s)))
 	}
 
 	pub fn get_menu_str(&self, action: ActionId, is_quick: bool) -> String {
@@ -559,6 +555,7 @@ impl ModeShortcuts {
 		self.bindings.clear();
 	}
 
+	#[allow(clippy::fn_params_excessive_bools, reason = "these are the keyboard modifiers, which are separate flags")]
 	pub fn find_action(&self, is_quick: bool, key_code: i32, ctrl: bool, alt: bool, shift: bool) -> Option<ActionId> {
 		for &action in ActionId::all() {
 			if let Some(chord) = self.get_chord(action, is_quick)
@@ -580,11 +577,11 @@ pub struct ShortcutsConfig {
 }
 
 impl ShortcutsConfig {
-	pub fn active_mode(&self, quick: bool) -> &ModeShortcuts {
+	pub const fn active_mode(&self, quick: bool) -> &ModeShortcuts {
 		if quick { &self.quick_keys } else { &self.normal }
 	}
 
-	pub fn active_mode_mut(&mut self, quick: bool) -> &mut ModeShortcuts {
+	pub const fn active_mode_mut(&mut self, quick: bool) -> &mut ModeShortcuts {
 		if quick { &mut self.quick_keys } else { &mut self.normal }
 	}
 
@@ -596,6 +593,7 @@ impl ShortcutsConfig {
 		self.active_mode(quick).get_menu_str(action, quick)
 	}
 
+	#[allow(clippy::fn_params_excessive_bools, reason = "these are the keyboard modifiers, which are separate flags")]
 	pub fn find_action(&self, quick: bool, key_code: i32, ctrl: bool, alt: bool, shift: bool) -> Option<ActionId> {
 		self.active_mode(quick).find_action(quick, key_code, ctrl, alt, shift)
 	}

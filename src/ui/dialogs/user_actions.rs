@@ -7,25 +7,25 @@ use crate::{
 	network::NetworkCommand,
 };
 
-pub(crate) const ID_ACTION_FOLLOW: i32 = 6001;
-pub(crate) const ID_ACTION_UNFOLLOW: i32 = 6002;
-pub(crate) const ID_ACTION_BLOCK: i32 = 6003;
-pub(crate) const ID_ACTION_UNBLOCK: i32 = 6004;
-pub(crate) const ID_ACTION_MUTE: i32 = 6005;
-pub(crate) const ID_ACTION_UNMUTE: i32 = 6006;
-pub(crate) const ID_ACTION_OPEN_BROWSER: i32 = 6007;
-pub(crate) const ID_ACTION_SHOW_BOOSTS: i32 = 6008;
-pub(crate) const ID_ACTION_HIDE_BOOSTS: i32 = 6009;
-pub(crate) const ID_ACTION_VIEW_FOLLOWERS: i32 = 6010;
-pub(crate) const ID_ACTION_VIEW_FOLLOWING: i32 = 6011;
-pub(crate) const ID_ACTION_ACCEPT_FOLLOW_REQUEST: i32 = 6012;
-pub(crate) const ID_ACTION_REJECT_FOLLOW_REQUEST: i32 = 6013;
-pub(crate) const ID_ACTION_ADD_TO_LIST: i32 = 6014;
-pub(crate) const ID_ACTION_ENABLE_NOTIFICATIONS: i32 = 6015;
-pub(crate) const ID_ACTION_DISABLE_NOTIFICATIONS: i32 = 6016;
-pub(crate) const ID_ACTION_SEND_DIRECT_MESSAGE: i32 = 6017;
+pub const ID_ACTION_FOLLOW: i32 = 6001;
+pub const ID_ACTION_UNFOLLOW: i32 = 6002;
+pub const ID_ACTION_BLOCK: i32 = 6003;
+pub const ID_ACTION_UNBLOCK: i32 = 6004;
+pub const ID_ACTION_MUTE: i32 = 6005;
+pub const ID_ACTION_UNMUTE: i32 = 6006;
+pub const ID_ACTION_OPEN_BROWSER: i32 = 6007;
+pub const ID_ACTION_SHOW_BOOSTS: i32 = 6008;
+pub const ID_ACTION_HIDE_BOOSTS: i32 = 6009;
+pub const ID_ACTION_VIEW_FOLLOWERS: i32 = 6010;
+pub const ID_ACTION_VIEW_FOLLOWING: i32 = 6011;
+pub const ID_ACTION_ACCEPT_FOLLOW_REQUEST: i32 = 6012;
+pub const ID_ACTION_REJECT_FOLLOW_REQUEST: i32 = 6013;
+pub const ID_ACTION_ADD_TO_LIST: i32 = 6014;
+pub const ID_ACTION_ENABLE_NOTIFICATIONS: i32 = 6015;
+pub const ID_ACTION_DISABLE_NOTIFICATIONS: i32 = 6016;
+pub const ID_ACTION_SEND_DIRECT_MESSAGE: i32 = 6017;
 
-pub(crate) fn append_relationship_text(text: &mut String, relationship: &Relationship, is_own_account: bool) {
+pub fn append_relationship_text(text: &mut String, relationship: &Relationship, is_own_account: bool) {
 	text.push_str("\r\n\r\nRelationship:\r\n");
 	if !is_own_account {
 		let follow_status = match (relationship.following, relationship.followed_by) {
@@ -60,7 +60,7 @@ pub(crate) fn append_relationship_text(text: &mut String, relationship: &Relatio
 	}
 }
 
-pub(crate) fn setup_actions_button(
+pub fn setup_actions_button(
 	panel: Panel,
 	button: Button,
 	account: Rc<RefCell<Account>>,

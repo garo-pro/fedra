@@ -114,7 +114,7 @@ fn connect_and_stream(
 	let (mut socket, _response) =
 		client_tls_with_config(request, tcp, None, None).map_err(|e| format!("WebSocket connection failed: {e}"))?;
 	let mut last_message_at = Instant::now();
-	let mut last_ping_at = Instant::now() - HEARTBEAT_INTERVAL;
+	let mut last_ping_at = Instant::now().checked_sub(HEARTBEAT_INTERVAL).unwrap_or_else(Instant::now);
 	if !send_event(sender, ui_waker, StreamEvent::Connected(timeline_type.clone())) {
 		return Ok(());
 	}
@@ -178,10 +178,10 @@ fn connect_tcp_stream(uri: &Uri) -> Result<TcpStream, String> {
 			Err(err) => last_err = Some(err),
 		}
 	}
-	match last_err {
-		Some(err) => Err(format!("Timed out connecting to WebSocket endpoint: {err}")),
-		None => Err("WebSocket host resolved to no socket addresses".to_string()),
-	}
+	last_err.map_or_else(
+		|| Err("WebSocket host resolved to no socket addresses".to_string()),
+		|err| Err(format!("Timed out connecting to WebSocket endpoint: {err}")),
+	)
 }
 
 fn configure_tcp_timeouts(stream: &TcpStream) -> std::io::Result<()> {

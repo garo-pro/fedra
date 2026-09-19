@@ -160,7 +160,7 @@ pub(super) fn follow_list_loaded(
 	let ui_tx_timeline = ctx.ui_tx.clone();
 	let ui_tx_close = ctx.ui_tx.clone();
 	let account_id_opt = next_max_id.as_ref().map(|_| account_id.clone());
-	let profile_dlg_handle = ctx.state.profile_dialog.as_ref().map(|pd| pd.dialog_handle());
+	let profile_dlg_handle = ctx.state.profile_dialog.as_ref().map(dialogs::ProfileDialog::dialog_handle);
 	let parent: &dyn WxWidget = profile_dlg_handle.as_ref().map_or(ctx.frame as _, |d| d as _);
 	let dlg = dialogs::FollowListDialog::new(
 		parent,
@@ -195,7 +195,7 @@ pub(super) fn follow_list_loaded(
 }
 
 pub(super) fn follow_list_next_page(
-	ctx: &mut NetworkResponseContext<'_>,
+	ctx: &NetworkResponseContext<'_>,
 	list: FollowList,
 	result: Result<(Vec<Account>, Option<String>)>,
 ) {
@@ -209,19 +209,16 @@ pub(super) fn follow_list_next_page(
 			return;
 		}
 	};
-	let next_page = if let Some(dlg) = list.dialog(ctx.state) {
+	let next_page = list.dialog(ctx.state).and_then(|dlg| {
 		if !accounts.is_empty() {
 			dlg.append_accounts(&accounts);
 		}
-		if accounts.is_empty() || next_max_id.is_none() {
+		let Some(next) = next_max_id.filter(|_| !accounts.is_empty()) else {
 			dlg.mark_loaded();
-			None
-		} else {
-			dlg.account_id.as_ref().map(|id| (id.clone(), next_max_id.unwrap()))
-		}
-	} else {
-		None
-	};
+			return None;
+		};
+		dlg.account_id.as_ref().map(|id| (id.clone(), next))
+	});
 	if let Some(h) = &ctx.state.network_handle {
 		if !accounts.is_empty() {
 			let account_ids = accounts.iter().map(|a| a.id.clone()).collect();
@@ -234,7 +231,7 @@ pub(super) fn follow_list_next_page(
 }
 
 pub(super) fn relationship_updated(
-	ctx: &mut NetworkResponseContext<'_>,
+	ctx: &NetworkResponseContext<'_>,
 	target_name: &str,
 	action: RelationshipAction,
 	result: Result<Relationship>,
@@ -294,7 +291,7 @@ fn relationship_message(action: RelationshipAction, target_name: &str) -> String
 	}
 }
 
-pub(super) fn credentials_fetched(ctx: &mut NetworkResponseContext<'_>, account: &Account) {
+pub(super) fn credentials_fetched(ctx: &NetworkResponseContext<'_>, account: &Account) {
 	if let Some(update) = dialogs::show_profile_edit_dialog(ctx.frame, account)
 		&& let Some(handle) = &ctx.state.network_handle
 	{

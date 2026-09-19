@@ -1108,13 +1108,8 @@ fn network_loop(
 				);
 			}
 			Ok(NetworkCommand::ToggleFollow { account_id, acct, target_name }) => {
-				let resolved_id = if let Some(id) = account_id {
-					Some(id)
-				} else if let Ok(account) = client.lookup_account(access_token, &acct) {
-					Some(account.id)
-				} else {
-					None
-				};
+				let resolved_id =
+					account_id.or_else(|| client.lookup_account(access_token, &acct).ok().map(|account| account.id));
 
 				if let Some(id) = resolved_id
 					&& let Ok(mut rels) = client.get_relationships(access_token, slice::from_ref(&id))

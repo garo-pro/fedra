@@ -784,6 +784,7 @@ pub fn prompt_for_compose(
 	initial_media: Vec<PostMedia>,
 	initial_poll: Option<PostPoll>,
 ) -> Option<(PostResult, ComposeDialogConfig)> {
+	const ID_CUSTOM_SUBMIT: i32 = 26001;
 	let max_chars = max_chars.unwrap_or(DEFAULT_MAX_POST_CHARS);
 	let title_prefix = config.title_prefix.clone();
 	let ok_label = config.ok_label.clone();
@@ -874,7 +875,6 @@ pub fn prompt_for_compose(
 	}
 	thread_checkbox.set_value(config.initial_thread_mode);
 	let button_sizer = BoxSizer::builder(Orientation::Horizontal).build();
-	const ID_CUSTOM_SUBMIT: i32 = 26001;
 	let ok_button = Button::builder(&panel).with_id(ID_CUSTOM_SUBMIT).with_label(&ok_label).build();
 	if enter_to_send {
 		ok_button.set_default();
@@ -1071,7 +1071,7 @@ pub fn prompt_for_compose(
 
 	let dialog_enter = dialog;
 	let content_text_enter = content_text;
-	let title_prefix_enter = title_prefix.clone();
+	let title_prefix_enter = title_prefix;
 	content_text.on_key_down(move |event| {
 		if let WindowEventData::Keyboard(ref key_event) = event {
 			let key = key_event.get_key_code();
@@ -1309,7 +1309,7 @@ pub fn prompt_for_edit(
 		ComposeDialogConfig {
 			title_prefix: "Edit Post".to_string(),
 			ok_label: "Save".to_string(),
-			initial_content: source_text.map(ToOwned::to_owned).unwrap_or_else(|| status.display_text()),
+			initial_content: source_text.map_or_else(|| status.display_text(), ToOwned::to_owned),
 			initial_cw,
 			initial_sensitive: status.sensitive,
 			initial_language: status.language.clone(),

@@ -41,7 +41,7 @@ impl MastodonClient {
 		Ok((accounts, next_max_id))
 	}
 
-	fn fetch_all_accounts(&self, base_url: Url, access_token: Option<&str>) -> Result<Vec<Account>> {
+	fn fetch_all_accounts(&self, base_url: &Url, access_token: Option<&str>) -> Result<Vec<Account>> {
 		let mut all_accounts = Vec::new();
 		let mut max_id: Option<String> = None;
 		loop {
@@ -79,13 +79,13 @@ impl MastodonClient {
 	pub fn get_remote_followers(&self, acct: &str) -> Result<Vec<Account>> {
 		let (base_url, remote_id) = self.resolve_remote_account(acct)?;
 		let url = base_url.join(&format!("api/v1/accounts/{remote_id}/followers"))?;
-		self.fetch_all_accounts(url, None).context("Failed to fetch remote followers")
+		self.fetch_all_accounts(&url, None).context("Failed to fetch remote followers")
 	}
 
 	pub fn get_remote_following(&self, acct: &str) -> Result<Vec<Account>> {
 		let (base_url, remote_id) = self.resolve_remote_account(acct)?;
 		let url = base_url.join(&format!("api/v1/accounts/{remote_id}/following"))?;
-		self.fetch_all_accounts(url, None).context("Failed to fetch remote following")
+		self.fetch_all_accounts(&url, None).context("Failed to fetch remote following")
 	}
 
 	fn resolve_remote_account(&self, acct: &str) -> Result<(Url, String)> {

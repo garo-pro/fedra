@@ -140,7 +140,7 @@ impl ManageListMembersDialog {
 		&self.list_id
 	}
 
-	pub fn get_dialog(&self) -> &Dialog {
+	pub const fn get_dialog(&self) -> &Dialog {
 		&self.dialog
 	}
 }

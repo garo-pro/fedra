@@ -1,10 +1,9 @@
-#![warn(clippy::all)]
-// The tree carries a large backlog of pedantic and nursery findings. They are
-// allowed so CI fails only on clippy::all and real compiler warnings. To work
-// through the backlog, run:
-//   cargo clippy --release -- --force-warn clippy::pedantic --force-warn clippy::nursery
-#![allow(clippy::pedantic, clippy::nursery)]
-#![allow(clippy::too_many_arguments, clippy::too_many_lines)] // temp
+#![warn(clippy::all, clippy::pedantic, clippy::nursery)]
+// Still allowed: 9 functions take more than 7 arguments and 26 run past 100
+// lines, nearly all of them dialog builders. Splitting those up is a refactor
+// rather than a lint fix. To see the list:
+//   cargo clippy --all-targets -- --force-warn clippy::too_many_arguments --force-warn clippy::too_many_lines
+#![allow(clippy::too_many_arguments, clippy::too_many_lines)]
 #![windows_subsystem = "windows"]
 
 mod accounts;

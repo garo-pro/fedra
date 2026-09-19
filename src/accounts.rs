@@ -19,13 +19,10 @@ use crate::{
 };
 
 pub fn update_window_title(state: &AppState, frame: &Frame) {
-	let handle = state.active_account().map_or_else(|| "Unknown".to_string(), |account| account.full_handle());
+	let handle = state.active_account().map_or_else(|| "Unknown".to_string(), Account::full_handle);
 
-	let timeline = state
-		.timeline_manager
-		.active()
-		.map(|t| t.timeline_type.display_name())
-		.unwrap_or_else(|| "Unknown".to_string());
+	let timeline =
+		state.timeline_manager.active().map_or_else(|| "Unknown".to_string(), |t| t.timeline_type.display_name());
 
 	let title = crate::template::render_window_title(
 		&state.config.window_title_template,
@@ -319,7 +316,7 @@ pub fn switch_to_account(
 		}
 	});
 	if should_announce {
-		let handle = state.active_account().map_or_else(|| "Unknown".to_string(), |account| account.full_handle());
+		let handle = state.active_account().map_or_else(|| "Unknown".to_string(), Account::full_handle);
 		timeline_list.announce(&format!("Switched to {handle}"));
 	}
 	update_window_title(state, frame);

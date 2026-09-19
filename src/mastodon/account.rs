@@ -78,16 +78,13 @@ impl Account {
 	}
 
 	pub fn full_acct(&self) -> String {
-		if self.acct.contains('@') {
-			self.acct.clone()
-		} else {
-			if let Ok(url) = reqwest::Url::parse(&self.url)
-				&& let Some(host) = url.host_str()
-			{
-				return format!("{}@{}", self.acct, host);
-			}
-			self.acct.clone()
+		if !self.acct.contains('@')
+			&& let Ok(url) = reqwest::Url::parse(&self.url)
+			&& let Some(host) = url.host_str()
+		{
+			return format!("{}@{}", self.acct, host);
 		}
+		self.acct.clone()
 	}
 
 	pub fn timeline_display_name(&self, mode: DisplayNameEmojiMode) -> String {

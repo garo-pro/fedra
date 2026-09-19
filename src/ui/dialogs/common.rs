@@ -2,7 +2,7 @@ use wxdragon::prelude::*;
 
 use crate::mastodon::SearchType;
 
-pub(crate) const KEY_RETURN: i32 = 13;
+pub const KEY_RETURN: i32 = 13;
 
 pub use wx_utils::prompt_text;
 

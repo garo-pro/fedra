@@ -108,7 +108,7 @@ struct MediaLiveRegion {
 
 impl MediaLiveRegion {
 	fn new(frame: &Frame) -> Self {
-		let hwnd = HWND(frame.get_handle() as *mut _);
+		let hwnd = HWND(frame.get_handle().cast());
 		let last_announcement = Rc::new(RefCell::new(None::<String>));
 		let adapter = SubclassingAdapter::new(hwnd, MediaActivationHandler, MediaActionHandler);
 		Self { adapter: Rc::new(RefCell::new(adapter)), last_announcement }
@@ -391,15 +391,16 @@ fn spawn_progress_download(
 /// and a completion dialog parented on `frame`. Used by the "Download this
 /// media file" command in both the player and the image viewer.
 fn download_to_user_file(frame: &Frame, url: &str) {
-	let default_file = if let Ok(u) = Url::parse(url) {
-		u.path_segments()
-			.and_then(|mut segments| segments.next_back())
-			.filter(|s| !s.is_empty())
-			.unwrap_or("media")
-			.to_string()
-	} else {
-		"media".to_string()
-	};
+	let default_file = Url::parse(url).map_or_else(
+		|_| "media".to_string(),
+		|u| {
+			u.path_segments()
+				.and_then(|mut segments| segments.next_back())
+				.filter(|s| !s.is_empty())
+				.unwrap_or("media")
+				.to_string()
+		},
+	);
 	let dialog = FileDialog::builder(frame)
 		.with_message("Save Media As")
 		.with_default_file(&default_file)

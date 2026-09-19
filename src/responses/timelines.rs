@@ -16,9 +16,9 @@ use crate::{
 
 pub(super) fn loaded(
 	ctx: &mut NetworkResponseContext<'_>,
-	timeline_type: TimelineType,
+	timeline_type: &TimelineType,
 	data: TimelineData,
-	max_id: Option<String>,
+	max_id: Option<&str>,
 	active_type: Option<&TimelineType>,
 ) {
 	let mut should_find_next = false;
@@ -28,21 +28,20 @@ pub(super) fn loaded(
 		let timeline_list = &ctx.timeline_list;
 		let live_region = ctx.live_region;
 		let suppress_selection = ctx.suppress_selection;
-		let is_active = active_type == Some(&timeline_type);
+		let is_active = active_type == Some(timeline_type);
 		let mut status_snapshots: Vec<Status> = Vec::new();
-		let view_options = state.timeline_view_options_for(&timeline_type);
-		let _text_options = &view_options.text_options;
+		let view_options = state.timeline_view_options_for(timeline_type);
 		// Extract any pending position restore for this timeline's initial load.
-		let timeline_index_opt = state.timeline_manager.index_of(&timeline_type);
+		let timeline_index_opt = state.timeline_manager.index_of(timeline_type);
 		let restore_id = if max_id.is_none() {
 			state
 				.pending_restore_post_id
 				.as_ref()
-				.and_then(|(rt, id)| if *rt == timeline_type { Some(id.clone()) } else { None })
+				.and_then(|(rt, id)| if *rt == *timeline_type { Some(id.clone()) } else { None })
 		} else {
 			None
 		};
-		if let Some(timeline) = state.timeline_manager.get_mut(&timeline_type) {
+		if let Some(timeline) = state.timeline_manager.get_mut(timeline_type) {
 			if is_active {
 				let effective_sort_order = timeline.effective_sort_order(&state.config);
 				sync_timeline_selection_from_list(timeline, timeline_list, effective_sort_order);
@@ -112,7 +111,7 @@ pub(super) fn loaded(
 				if filtered.is_empty() {
 					live_region.announce("No more posts");
 				} else {
-					timeline.entries.extend(filtered.clone());
+					timeline.entries.extend(filtered);
 				}
 				timeline.next_max_id = next_max_id;
 
@@ -245,11 +244,10 @@ pub(super) fn search_loaded(
 			return;
 		}
 
-		let timeline_type = TimelineType::Search { query: query.clone(), search_type };
+		let timeline_type = TimelineType::Search { query, search_type };
 		let is_active = active_type == Some(&timeline_type);
 		let mut status_snapshots: Vec<Status> = Vec::new();
 		let view_options = state.timeline_view_options_for(&timeline_type);
-		let _text_options = &view_options.text_options;
 		let timeline_index_opt = state.timeline_manager.index_of(&timeline_type);
 		if let Some(timeline) = state.timeline_manager.get_mut(&timeline_type) {
 			if is_active {

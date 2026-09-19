@@ -166,7 +166,7 @@ impl ManageListsDialog {
 		self.lists.borrow().iter().find(|l| l.id == list_id).map(|l| l.title.clone())
 	}
 
-	pub fn get_dialog(&self) -> &Dialog {
+	pub const fn get_dialog(&self) -> &Dialog {
 		&self.dialog
 	}
 }

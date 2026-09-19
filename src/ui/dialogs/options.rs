@@ -189,6 +189,7 @@ fn parse_hotkey_key(input: &str) -> Option<char> {
 	}
 }
 
+#[allow(clippy::struct_excessive_bools, reason = "one field per checkbox in the options dialog")]
 pub struct OptionsDialogInput {
 	pub enter_to_send: bool,
 	pub always_show_link_dialog: bool,

@@ -49,9 +49,9 @@ impl ActivationHandler for TimelineActivationHandler {
 		let mut children = Vec::with_capacity(state.entries.len());
 		let mut nodes = Vec::with_capacity(state.entries.len() + 1);
 		let focus_id = if let Some(idx) = state.selected_index {
-			state.entries.get(idx).map(|(id, _)| *id).unwrap_or(ROOT_ID)
+			state.entries.get(idx).map_or(ROOT_ID, |(id, _)| *id)
 		} else {
-			state.entries.first().map(|(id, _)| *id).unwrap_or(ROOT_ID)
+			state.entries.first().map_or(ROOT_ID, |(id, _)| *id)
 		};
 		for (i, (id, text)) in state.entries.iter().enumerate() {
 			children.push(*id);
@@ -119,12 +119,12 @@ impl TimelineList {
 		panel.set_label("");
 		unsafe {
 			wxdragon::ffi::wxd_Window_SetWindowStyle(
-				panel.as_ptr() as *mut _,
-				wxdragon::ffi::wxd_Window_GetWindowStyle(panel.as_ptr() as *mut _) | 0x00040000,
+				panel.as_ptr().cast(),
+				wxdragon::ffi::wxd_Window_GetWindowStyle(panel.as_ptr().cast()) | 0x0004_0000,
 			);
 		}
 
-		let hwnd = HWND(panel.get_handle() as *mut _);
+		let hwnd = HWND(panel.get_handle().cast());
 		let list_state = Rc::new(RefCell::new(ListState {
 			entries: Vec::new(),
 			selected_index: None,
@@ -156,7 +156,7 @@ impl TimelineList {
 			if request.action == accesskit::Action::Focus
 				&& let Some(inner_rc) = weak_inner.upgrade()
 			{
-				let temp_tl = TimelineList { panel: panel_copy, inner: inner_rc };
+				let temp_tl = Self { panel: panel_copy, inner: inner_rc };
 				temp_tl.set_selection(Some(request.target_node));
 
 				let cb = temp_tl.inner.borrow().on_selection_changed.as_ref().map(|cb| std::ptr::from_ref(cb.as_ref()));
@@ -298,11 +298,11 @@ impl TimelineList {
 	}
 
 	pub fn get_selection(&self) -> Option<i32> {
-		self.inner.borrow().state.borrow().selected_index.map(|i| i as i32)
+		self.inner.borrow().state.borrow().selected_index.map(|i| i32::try_from(i).unwrap_or(i32::MAX))
 	}
 
 	pub fn get_count(&self) -> i32 {
-		self.inner.borrow().state.borrow().entries.len() as i32
+		i32::try_from(self.inner.borrow().state.borrow().entries.len()).unwrap_or(i32::MAX)
 	}
 
 	pub fn clear(&self) {
@@ -384,7 +384,7 @@ impl TimelineList {
 				// can restore that instead of jumping straight to the latest text -- see
 				// `frozen_label` doc comment.
 				if state.frozen_label.as_ref().is_none_or(|(fid, _)| *fid != *id) {
-					let displayed = old_positions.get(id).map(|(_, t)| t.clone()).unwrap_or_else(|| text.clone());
+					let displayed = old_positions.get(id).map_or_else(|| text.clone(), |(_, t)| t.clone());
 					state.frozen_label = Some((*id, displayed));
 				}
 				continue;
@@ -508,7 +508,7 @@ impl TimelineList {
 		if is_repeat {
 			let start = state.selected_index.map_or(0, |i| i + 1);
 			let count = state.entries.len();
-			let prefix: String = [lower_ch].into_iter().collect();
+			let prefix: String = std::iter::once(lower_ch).collect();
 			let found = (0..count).find_map(|offset| {
 				let idx = (start + offset) % count;
 				let text = &state.entries[idx].1;
@@ -583,15 +583,15 @@ impl TimelineList {
 		node.set_value(new_text);
 		node.set_live(accesskit::Live::Polite);
 		let focus_id = if let Some(idx) = state.selected_index {
-			state.entries.get(idx).map(|(id, _)| *id).unwrap_or(ROOT_ID)
+			state.entries.get(idx).map_or(ROOT_ID, |(id, _)| *id)
 		} else {
-			state.entries.first().map(|(id, _)| *id).unwrap_or(ROOT_ID)
+			state.entries.first().map_or(ROOT_ID, |(id, _)| *id)
 		};
 
 		let mut root = Node::new(Role::ListBox);
 		root.set_size_of_set(state.entries.len());
 		let mut children = Vec::with_capacity(state.entries.len() + 1);
-		for (id, _) in state.entries.iter() {
+		for (id, _) in &state.entries {
 			children.push(*id);
 		}
 		children.push(ANNOUNCEMENT_ID);

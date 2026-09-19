@@ -273,6 +273,7 @@ impl TimelineEntry {
 }
 
 #[allow(clippy::struct_field_names)]
+#[allow(clippy::struct_excessive_bools, reason = "independent per-timeline state flags")]
 pub struct Timeline {
 	pub timeline_type: TimelineType,
 	pub entries: Vec<TimelineEntry>,
@@ -294,7 +295,7 @@ pub struct Timeline {
 }
 
 impl Timeline {
-	pub fn effective_sort_order(&self, config: &Config) -> SortOrder {
+	pub const fn effective_sort_order(&self, config: &Config) -> SortOrder {
 		if config.preserve_thread_order && matches!(self.timeline_type, TimelineType::Thread { .. }) {
 			SortOrder::OldestToNewest
 		} else {

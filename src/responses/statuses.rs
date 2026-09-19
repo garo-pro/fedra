@@ -76,20 +76,20 @@ pub(super) const UNBOOST: StatusAction = StatusAction {
 	refetch_own_timelines: false,
 };
 
-fn copy_favorite(target: &mut Status, source: &Status) {
+const fn copy_favorite(target: &mut Status, source: &Status) {
 	target.favourited = source.favourited;
 	target.favourites_count = source.favourites_count;
 }
 
-fn copy_bookmark(target: &mut Status, source: &Status) {
+const fn copy_bookmark(target: &mut Status, source: &Status) {
 	target.bookmarked = source.bookmarked;
 }
 
-fn copy_pin(target: &mut Status, source: &Status) {
+const fn copy_pin(target: &mut Status, source: &Status) {
 	target.pinned = source.pinned;
 }
 
-fn copy_boost(target: &mut Status, source: &Status) {
+const fn copy_boost(target: &mut Status, source: &Status) {
 	target.reblogged = source.reblogged;
 	target.reblogs_count = source.reblogs_count;
 }

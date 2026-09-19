@@ -177,13 +177,13 @@ impl FollowListDialog {
 			show_menu_btn();
 		});
 
-		let show_menu_ctx = show_menu.clone();
+		let show_menu_ctx = show_menu;
 		panel.on_context_menu(move |_| {
 			show_menu_ctx();
 		});
 
 		let relationships_handler = relationships_rc.clone();
-		let current_account_handler = current_account_rc.clone();
+		let current_account_handler = current_account_rc;
 		panel.on_menu_selected(move |event| {
 			let id = event.get_id();
 			let current = current_account_handler.borrow();

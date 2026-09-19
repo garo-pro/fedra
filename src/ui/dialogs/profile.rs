@@ -98,7 +98,7 @@ impl ProfileDialog {
 		self.dialog.show(true);
 	}
 
-	pub fn dialog_handle(&self) -> Dialog {
+	pub const fn dialog_handle(&self) -> Dialog {
 		self.dialog
 	}
 
@@ -409,7 +409,7 @@ impl HashtagDialog {
 		});
 		let tags_view = tags_rc.clone();
 		let list_view = tag_list;
-		let ui_tx_view = ui_tx.clone();
+		let ui_tx_view = ui_tx;
 		let dlg_view = dialog;
 		view_timeline_button.on_click(move |_| {
 			if let Some(sel) = list_view.get_selection() {

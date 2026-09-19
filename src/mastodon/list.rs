@@ -12,6 +12,10 @@ pub struct List {
 }
 
 /// Builds the shared form body for list creation and updates.
-pub(super) fn list_form<'a>(title: &'a str, replies_policy: &'a str, exclusive: bool) -> [(&'static str, &'a str); 3] {
+pub(super) const fn list_form<'a>(
+	title: &'a str,
+	replies_policy: &'a str,
+	exclusive: bool,
+) -> [(&'static str, &'a str); 3] {
 	[("title", title), ("replies_policy", replies_policy), ("exclusive", if exclusive { "true" } else { "false" })]
 }
