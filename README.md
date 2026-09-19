@@ -10,27 +10,16 @@ For a comprehensive user guide, including a full list of features and hotkeys, p
 
 To build, you'll need cargo, as well as CMake and Ninja for building wxDragon. In addition, you also need LLVM, from LLVM.org.
 
-### Toolchains
-
-- Stable Rust `1.88.0` is used for builds, tests, and clippy.
-- Nightly Rust is only required for formatting with `cargo +nightly fmt`.
-
-### Native Dependencies
-
-Due to accessibility issues observed in current versions of WX, Fedra expects a local `wxWidgets` checkout and the `WXWIDGETS_DIR` environment variable to point to it.
-
-On PowerShell:
-
-```powershell
-git clone --recurse-submodules https://github.com/wxWidgets/wxWidgets.git
-$env:WXWIDGETS_DIR = "$PWD\\wxWidgets"
-```
-
 ```batch
 cargo build --release
 ```
 
 This will generate the executable at `target/release/fedra.exe`.
+
+### Toolchains
+
+- Stable Rust `1.88.0` is the minimum supported version. CI builds, tests, and lints on the latest stable.
+- Nightly Rust is only required for formatting with `cargo +nightly fmt`.
 
 ### Optional Tools
 
@@ -58,8 +47,8 @@ Run the same checks that CI expects:
 
 ```batch
 cargo +nightly fmt --check
+cargo clippy --all-targets -- -D warnings
 cargo test
-cargo clippy --release
 ```
 
 ## License
