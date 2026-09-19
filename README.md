@@ -20,6 +20,7 @@ This will generate the executable at `target/release/fedra.exe`.
 
 - Stable Rust `1.88.0` is the minimum supported version. CI builds, tests, and lints on the latest stable.
 - Nightly Rust is only required for formatting with `cargo +nightly fmt`.
+- Clippy runs with `clippy::all`, `clippy::pedantic`, and `clippy::nursery` enabled, and CI treats every one as an error.
 
 ### Optional Tools
 
@@ -46,9 +47,9 @@ prek install
 Run the same checks that CI expects:
 
 ```batch
-cargo +nightly fmt --check
-cargo clippy --all-targets -- -D warnings
-cargo test
+cargo +nightly fmt --all --check
+cargo clippy --workspace --all-targets -- -D warnings
+cargo test --workspace
 ```
 
 ## License

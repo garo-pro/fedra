@@ -20,7 +20,7 @@ jobs:
           toolchain: nightly
           components: rustfmt
       - name: Check formatting
-        run: cargo +nightly fmt --check
+        run: cargo +nightly fmt --all --check
   test:
     name: Tests and clippy
     runs-on: windows-latest
@@ -43,7 +43,9 @@ jobs:
       # Clippy runs first so the dependency tree is built once, in the same
       # profile the tests then reuse. Checking in release meant compiling
       # everything a second time under LTO for no extra findings.
+      # The crate warns on clippy::all, pedantic and nursery, so -D warnings
+      # makes every one of those fatal here.
       - name: Run clippy
-        run: cargo clippy --all-targets -- -D warnings
+        run: cargo clippy --workspace --all-targets -- -D warnings
       - name: Run tests
-        run: cargo test
+        run: cargo test --workspace
