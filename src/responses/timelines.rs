@@ -7,11 +7,7 @@ use crate::{
 	mastodon::{SearchResults, SearchType, Status},
 	network::{NetworkCommand, TimelineData},
 	timeline::{TimelineEntry, TimelineType},
-	ui::{
-		dialogs,
-		menu::update_menu_labels,
-		timeline_view::{sync_timeline_selection_from_list, update_active_timeline_ui},
-	},
+	ui::{dialogs, menu::update_menu_labels, timeline_view::update_active_timeline_ui},
 };
 
 pub(super) fn loaded(
@@ -41,10 +37,6 @@ pub(super) fn loaded(
 			None
 		};
 		if let Some(timeline) = state.timeline_manager.get_mut(timeline_type) {
-			if is_active {
-				let effective_sort_order = timeline.effective_sort_order(&state.config);
-				sync_timeline_selection_from_list(timeline, timeline_list, effective_sort_order);
-			}
 			let filter_context = timeline_type.filter_context();
 			let template_key = timeline_type.template_key();
 			let timeline_filter = state.config.filters.resolve(template_key);
@@ -243,10 +235,6 @@ pub(super) fn search_loaded(
 		let view_options = state.timeline_view_options_for(&timeline_type);
 		let timeline_index_opt = state.timeline_manager.index_of(&timeline_type);
 		if let Some(timeline) = state.timeline_manager.get_mut(&timeline_type) {
-			if is_active {
-				let effective_sort_order = timeline.effective_sort_order(&state.config);
-				sync_timeline_selection_from_list(timeline, timeline_list, effective_sort_order);
-			}
 			let mut new_entries: Vec<TimelineEntry> = Vec::new();
 			for account in results.accounts {
 				new_entries.push(TimelineEntry::Account(account));

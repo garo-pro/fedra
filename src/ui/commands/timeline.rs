@@ -21,10 +21,7 @@ use crate::{
 	ui::{
 		dialogs,
 		menu::update_menu_labels,
-		timeline_view::{
-			list_index_to_entry_index, sync_timeline_selection_from_list, update_active_timeline_ui,
-			with_suppressed_selection,
-		},
+		timeline_view::{list_index_to_entry_index, update_active_timeline_ui, with_suppressed_selection},
 	},
 };
 
@@ -240,26 +237,6 @@ pub(super) fn load_more_background(ctx: &mut UiCommandContext<'_>) {
 	handle_ui_command(UiCommand::LoadMore, ctx);
 }
 
-pub(super) fn home_pressed(ctx: &mut UiCommandContext<'_>) {
-	let state = &mut *ctx.state;
-	let timeline_list = &ctx.timeline_list;
-	if timeline_list.get_selection() != Some(0)
-		&& let Some(active) = state.timeline_manager.active_mut()
-	{
-		let effective_sort_order =
-			if state.config.preserve_thread_order && matches!(active.timeline_type, TimelineType::Thread { .. }) {
-				SortOrder::OldestToNewest
-			} else {
-				state.config.sort_order
-			};
-		let node_id =
-			crate::ui::timeline_view::list_index_to_entry_index(0, active.entries.len(), effective_sort_order)
-				.map(|entry_index| crate::ui::timeline_view::entry_id_to_node_id(active.entries[entry_index].id()));
-		timeline_list.set_selection(node_id);
-		sync_timeline_selection_from_list(active, timeline_list, effective_sort_order);
-	}
-}
-
 pub(super) fn load_more(ctx: &mut UiCommandContext<'_>) {
 	let state = &mut *ctx.state;
 	let live_region = ctx.live_region;
@@ -327,10 +304,6 @@ pub(super) fn timeline_selection_changed(ctx: &mut UiCommandContext<'_>, index: 
 	let timeline_list = &ctx.timeline_list;
 	let suppress_selection = ctx.suppress_selection;
 	if index < state.timeline_manager.len() {
-		if let Some(active) = state.timeline_manager.active_mut() {
-			let effective_sort_order = active.effective_sort_order(&state.config);
-			sync_timeline_selection_from_list(active, timeline_list, effective_sort_order);
-		}
 		state.timeline_manager.set_active(index);
 		update_window_title(state, frame);
 		let current_selection = timelines_selector.get_selection().map(|s| s as usize);

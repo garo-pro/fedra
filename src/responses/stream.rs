@@ -8,10 +8,7 @@ use crate::{
 	mastodon::Status,
 	streaming,
 	timeline::{TimelineEntry, TimelineType},
-	ui::{
-		menu::update_menu_labels,
-		timeline_view::{sync_timeline_selection_from_list, update_active_timeline_ui},
-	},
+	ui::{menu::update_menu_labels, timeline_view::update_active_timeline_ui},
 };
 
 /// Processes streaming events from WebSocket connections.
@@ -41,10 +38,6 @@ pub fn process_stream_events(
 			.as_deref()
 			.and_then(|id| state.config.accounts.iter().find(|a| a.id == id).and_then(|a| a.user_id.clone()));
 		let current_user_id = current_user_id_string.as_deref();
-		if is_active {
-			let effective_sort_order = timeline.effective_sort_order(&state.config);
-			sync_timeline_selection_from_list(timeline, timeline_list, effective_sort_order);
-		}
 		for event in events {
 			match event {
 				streaming::StreamEvent::Update { timeline_type, status } => {

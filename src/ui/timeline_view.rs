@@ -67,11 +67,6 @@ pub fn with_suppressed_selection<T>(suppress_selection: &Cell<bool>, f: impl FnO
 	result
 }
 
-pub fn with_frozen_listbox<T>(_listbox: &TimelineList, f: impl FnOnce() -> T) -> T {
-	// Custom TimelineList doesn't need freeze/thaw right now, but kept for compatibility
-	f()
-}
-
 pub const fn list_index_to_entry_index(list_index: usize, entries_len: usize, sort_order: SortOrder) -> Option<usize> {
 	if list_index >= entries_len {
 		return None;
@@ -90,15 +85,6 @@ pub const fn entry_index_to_list_index(entry_index: usize, entries_len: usize, s
 		SortOrder::NewestToOldest => Some(entry_index),
 		SortOrder::OldestToNewest => Some(entries_len - 1 - entry_index),
 	}
-}
-
-pub const fn sync_timeline_selection_from_list(
-	_timeline: &mut Timeline,
-	_timeline_list: &TimelineList,
-	_sort_order: SortOrder,
-) {
-	// Selection is driven by Timeline state and keyboard events on TimelineList,
-	// so this direction is less relevant for the virtual tree unless reacting to UI Automation events.
 }
 
 pub fn apply_timeline_selection(timeline_list: &TimelineList, timeline: &mut Timeline, sort_order: SortOrder) {
@@ -153,19 +139,17 @@ pub fn update_active_timeline_ui(
 		} else {
 			options.sort_order
 		};
-	with_frozen_listbox(timeline_list, || {
-		with_suppressed_selection(suppress_selection, || {
-			// Apply selection before update so we can pass the correctly calculated selection ID
-			apply_timeline_selection(timeline_list, timeline, effective_sort_order);
-			update_timeline_ui(
-				timeline_list,
-				&timeline.entries,
-				effective_sort_order,
-				&options.text_options,
-				cw_expanded,
-				timeline_index,
-				timeline.selected_id.as_deref(),
-			);
-		});
+	with_suppressed_selection(suppress_selection, || {
+		// Apply selection before update so we can pass the correctly calculated selection ID
+		apply_timeline_selection(timeline_list, timeline, effective_sort_order);
+		update_timeline_ui(
+			timeline_list,
+			&timeline.entries,
+			effective_sort_order,
+			&options.text_options,
+			cw_expanded,
+			timeline_index,
+			timeline.selected_id.as_deref(),
+		);
 	});
 }

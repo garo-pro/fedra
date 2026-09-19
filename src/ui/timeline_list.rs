@@ -422,6 +422,9 @@ impl TimelineList {
 		}
 	}
 
+	/// Moves focus without firing `on_selection_changed`, so the caller's own
+	/// model is not updated. Callers drive this from that model, not the other
+	/// way round.
 	pub fn set_selection(&self, selected_id: Option<NodeId>) {
 		let state_rc = { self.inner.borrow().state.clone() };
 		let mut state = state_rc.borrow_mut();

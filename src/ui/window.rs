@@ -215,11 +215,6 @@ pub fn bind_input_handlers(
 						}
 					}
 				}
-				if k == keys::HOME && sort_order_list.get() == SortOrder::OldestToNewest {
-					let _ = ui_tx_list_key.send(UiCommand::HomePressed);
-					event.skip(false);
-					return;
-				}
 			}
 			if let Some(action) = shortcuts_list_key.borrow().find_action(quick_mode, k, ctrl, alt, shift) {
 				match action {

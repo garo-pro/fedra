@@ -87,7 +87,6 @@ pub enum UiCommand {
 	LoadMore,
 	LoadMoreBackground,
 
-	HomePressed,
 	ToggleContentWarning,
 	ToggleFollow,
 	ToggleWindowVisibility,
@@ -155,7 +154,6 @@ pub fn handle_ui_command(cmd: UiCommand, ctx: &mut UiCommandContext<'_>) {
 		UiCommand::SentTimeline => timeline::sent_timeline(ctx),
 		UiCommand::CloseTimeline => timeline::close(ctx),
 		UiCommand::LoadMoreBackground => timeline::load_more_background(ctx),
-		UiCommand::HomePressed => timeline::home_pressed(ctx),
 		UiCommand::LoadMore => timeline::load_more(ctx),
 		UiCommand::ToggleContentWarning => post::toggle_content_warning(ctx),
 		UiCommand::ToggleWindowVisibility => app::toggle_window_visibility(ctx),
