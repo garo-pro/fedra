@@ -385,11 +385,12 @@ Press `Ctrl+I` (or `I` in Quick Action Keys mode) on a post with media attachmen
 * Attachments with no description are no longer announced as "alt N: (missing)". They are left out of the alt text list instead.
 * Fixed copy post staying greyed out on a thread that holds a single post.
 * Fixed play media reporting no media on a quote post whose media belongs to the quoted post.
+* Fixed posts silently disappearing from streaming timelines when an instance sent a field in a shape Fedra did not expect. An odd quote approval value no longer sinks the whole post, and a payload that still fails to parse is now reported instead of discarded.
 * Fixed quoted posts reading out "RE:" followed by a link when the quoted post was itself a quote.
 * Fixed refreshing a timeline throwing away everything you had loaded with load more, which moved your reading position back to the top.
 * Fixed the auto updater failing with an asset error. It looked for unsuffixed downloads that releases have never published.
 * Fixed the nested quote in a quoted thread looking broken until you refreshed by hand.
-* Fixed timelines never refreshing on instances without working streaming, such as GoToSocial and Iceshrimp.
+* Fixed timelines never refreshing on instances without working streaming, such as GoToSocial. A timeline is now polled only while its stream is actually disconnected, so a working stream costs no extra requests.
 * Media playback no longer uses Windows Media Player Legacy. Fedra plays audio with rodio now, so there is no optional Windows feature to install.
 * Removed the enter behavior combo from the shortcuts dialog.
 * Screen readers no longer reread the post you are on when the timeline refreshes in the background, either from new posts arriving or from the timestamp tick. The trade-off is that the relative time on the focused post can lag until you move off it and back.
