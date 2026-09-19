@@ -48,10 +48,10 @@ pub(super) fn refresh_timeline(state: &AppState, live_region: &crate::ui::timeli
 	}
 }
 
-pub(super) fn poll_non_streaming_timelines(state: &AppState) {
+pub(super) fn poll_streamable_timelines(state: &AppState) {
 	let Some(handle) = &state.network_handle else { return };
 	for timeline in state.timeline_manager.timelines() {
-		if timeline.stream_handle.is_none() && timeline.timeline_type.stream_params().is_some() {
+		if timeline.timeline_type.stream_params().is_some() {
 			handle.send(NetworkCommand::FetchTimeline {
 				timeline_type: timeline.timeline_type.clone(),
 				limit: Some(u32::from(state.config.fetch_limit)),
@@ -189,9 +189,9 @@ pub(super) fn refresh(ctx: &mut UiCommandContext<'_>) {
 	refresh_timeline(state, live_region);
 }
 
-pub(super) fn poll_non_streaming(ctx: &mut UiCommandContext<'_>) {
+pub(super) fn poll_streamable(ctx: &mut UiCommandContext<'_>) {
 	let state = &mut *ctx.state;
-	poll_non_streaming_timelines(state);
+	poll_streamable_timelines(state);
 }
 
 pub(super) fn open(ctx: &mut UiCommandContext<'_>, timeline_type: TimelineType) {

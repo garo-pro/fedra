@@ -353,7 +353,7 @@ fn main() {
 		let refresh_timer = Rc::new(Timer::new(&frame));
 		let ui_tx_timer_poll = ui_tx.clone();
 		refresh_timer.on_tick(move |_| {
-			let _ = ui_tx_timer_poll.send(UiCommand::PollNonStreaming);
+			let _ = ui_tx_timer_poll.send(UiCommand::PollStreamable);
 		});
 		refresh_timer.start(60_000, false);
 		let refresh_timer_keepalive = refresh_timer;

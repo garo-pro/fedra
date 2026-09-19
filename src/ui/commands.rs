@@ -114,7 +114,7 @@ pub enum UiCommand {
 	AppClosing,
 	ExitApp,
 	RecoverDraft,
-	PollNonStreaming,
+	PollStreamable,
 }
 
 /// Handles a UI command, updating state and UI as needed.
@@ -150,7 +150,7 @@ pub fn handle_ui_command(cmd: UiCommand, ctx: &mut UiCommandContext<'_>) {
 		UiCommand::Boost => post::boost(ctx),
 		UiCommand::Pin => post::pin(ctx),
 		UiCommand::Refresh => timeline::refresh(ctx),
-		UiCommand::PollNonStreaming => timeline::poll_non_streaming(ctx),
+		UiCommand::PollStreamable => timeline::poll_streamable(ctx),
 		UiCommand::OpenTimeline(timeline_type) => timeline::open(ctx, timeline_type),
 		UiCommand::SentTimeline => timeline::sent_timeline(ctx),
 		UiCommand::CloseTimeline => timeline::close(ctx),
