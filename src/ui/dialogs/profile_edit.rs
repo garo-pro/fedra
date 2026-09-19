@@ -99,7 +99,7 @@ pub fn show_profile_edit_dialog(frame: &Frame, current: &Account) -> Option<Prof
 			sensitive_cb.set_value(source.sensitive.unwrap_or(false));
 			content_sizer.add(&sensitive_cb, 0, SizerFlag::All, 5);
 			let lang_sizer = BoxSizer::builder(Orientation::Horizontal).build();
-			let lang_label = StaticText::builder(&scroll_win).with_label("Language (ISO code):").build();
+			let lang_label = StaticText::builder(&scroll_win).with_label("Language:").build();
 			let lang_text = TextCtrl::builder(&scroll_win).with_value(source.language.as_deref().unwrap_or("")).build();
 			lang_sizer.add(&lang_label, 0, SizerFlag::AlignCenterVertical | SizerFlag::Right, 5);
 			lang_sizer.add(&lang_text, 1, SizerFlag::Expand, 0);

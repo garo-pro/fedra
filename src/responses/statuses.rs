@@ -130,7 +130,7 @@ pub(super) fn source_fetched(ctx: &mut NetworkResponseContext<'_>, mut status: S
 		}
 		Err(err) => {
 			ctx.announce(&format!(
-				"Could not fetch source text, editing with stripped HTML: {}",
+				"Could not load the original text, so formatting may be lost: {}",
 				summarize_api_error(&err)
 			));
 			None

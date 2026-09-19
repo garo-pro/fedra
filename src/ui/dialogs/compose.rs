@@ -855,7 +855,7 @@ pub fn prompt_for_compose(
 		"ko".to_string(),
 		"zh".to_string(),
 	];
-	let language_label = StaticText::builder(&panel).with_label("Post &language (ISO code):").build();
+	let language_label = StaticText::builder(&panel).with_label("Post &language:").build();
 	let language_combo = ComboBox::builder(&panel).with_choices(language_choices).build();
 	let initial_language_value =
 		config.initial_language.as_deref().and_then(normalize_language_code).unwrap_or_default();

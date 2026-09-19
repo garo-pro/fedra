@@ -15,7 +15,7 @@ pub fn show_list_edit_dialog(
 	if let Some(t) = initial_title {
 		title_input.set_value(t);
 	}
-	let policy_label = StaticText::builder(&panel).with_label("Replies Policy:").build();
+	let policy_label = StaticText::builder(&panel).with_label("Show replies from:").build();
 	let policy_choices = vec![
 		"Show replies to followed users".to_string(),
 		"Show replies to list members".to_string(),

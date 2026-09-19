@@ -14,7 +14,7 @@ Windows 10 or 11
   - Visibility (Public, Unlisted, Followers only, Direct)
   - Content warnings
   - Content type (Default, plain text, markdown, HTML)
-  - Optional post language (ISO code)
+  - Optional post language
   - Media attachments with descriptions, optionally marked sensitive
   - Polls, with preset durations, multiple choice, and optionally hidden vote counts
   - Quote posts
@@ -93,7 +93,7 @@ The dialog offers:
 - **Content warning**: a checkbox plus the warning text field.
 - **Content type**: Default, plain text, Markdown, or HTML, for instances that support it. Editing a Markdown post gives you back your original Markdown, not the rendered text.
 - **Visibility**: Public, Unlisted, Followers only, or Direct. The initial value follows your account's default visibility.
-- **Post language**: an ISO code, defaulting to your account's setting.
+- **Post language**: a code like `en` or `de`, defaulting to your account's setting.
 - **Manage Media...**: add attachments, give each one a description, and mark the set as sensitive.
 - **Add Poll...**: add options up to your instance's limit, with a preset duration, optional multiple selections, and an option to hide vote counts until the poll closes.
 - **Schedule...**: pick a local date and time to publish at, or **Clear Schedule** to post immediately.
@@ -111,9 +111,9 @@ Open options with `Ctrl+,`.
 - `Strip tracking parameters from URLs`
 - `Use quick action keys in timelines`
 - `Check for updates on startup`
-- Update channel:
-  - `Stable`
-  - `Dev` (development builds)
+- Updates:
+  - `Stable releases`
+  - `Test builds`
 - Notifications mode:
   - Classic Windows Notifications
   - Sound only
@@ -137,12 +137,12 @@ Open options with `Ctrl+,`.
   - Never
   - When reaching the end
   - When navigating past the end
-- Posts to fetch when loading more (`1` to `40`)
+- Posts to load at a time (`1` to `40`)
 - Content warning display:
   - Show inline
   - Don't show
   - CW only
-- Display name emoji filtering:
+- Hide emoji in names:
   - None
   - Unicode emojis
   - Instance emojis
@@ -168,7 +168,7 @@ Templates are rendered per-entry each time a timeline is displayed. If a templat
 
 | Variable | Value |
 |---|---|
-| `{{ author }}` | Display name (respects emoji filtering setting) |
+| `{{ author }}` | Display name (respects the hide emoji in names setting) |
 | `{{ username }}` | `@acct` handle |
 | `{{ content }}` | Post text, HTML-stripped (respects content warning display setting) |
 | `{{ content_warning }}` | Spoiler text, or empty if none |
@@ -326,7 +326,7 @@ Toggle with `Ctrl+Shift+Q`. While it is on, the single-letter bindings in the ta
 - `Discoverable in directory`
 - Default post visibility
 - `Mark media as sensitive by default`
-- Default post language (ISO code)
+- Default post language, as a code like `en` or `de`
 
 ## Lists
 `Options -> Manage Lists...` shows your Mastodon lists, with buttons to **Add**, **Edit**, view and change **Members**, and **Delete**. Open a list as a timeline with `Timelines -> Open List...`. Individual users can also be added to a list from the **Actions...** menu in the profile and followers/following dialogs. List timelines stream in real time.

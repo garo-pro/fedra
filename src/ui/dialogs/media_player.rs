@@ -235,7 +235,7 @@ fn build_decoded_source(progress: Arc<DownloadProgress>) -> Result<DecodedSource
 		return Err(err);
 	}
 	let file = std::fs::File::open(&progress.dest).map_err(|e| e.to_string())?;
-	let decoder = rodio::Decoder::try_from(file).map_err(|e| format!("Could not decode media: {e}"))?;
+	let decoder = rodio::Decoder::try_from(file).map_err(|_| "Could not play that file".to_string())?;
 	let total_duration = decoder.total_duration();
 	Ok(DecodedSource { decoder, total_duration, progress })
 }

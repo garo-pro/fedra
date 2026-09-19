@@ -43,7 +43,7 @@ pub(super) fn view_help(ctx: &mut UiCommandContext<'_>) {
 			);
 		} else {
 			live_region.announce("Help file not found");
-			dialogs::show_error(frame, &anyhow::anyhow!("Help file (readme.html) not found in application directory."));
+			dialogs::show_error(frame, &anyhow::anyhow!("The help file is missing. Try reinstalling Fedra."));
 		}
 	} else {
 		live_region.announce("Could not determine help path");

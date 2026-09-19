@@ -291,8 +291,8 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 	let update_checkbox = CheckBox::builder(&general_panel).with_label("Check for &updates on startup").build();
 	update_checkbox.set_value(check_for_updates);
 
-	let channel_label = StaticText::builder(&general_panel).with_label("Update Channel:").build();
-	let channel_choices = vec!["Stable".to_string(), "Dev".to_string()];
+	let channel_label = StaticText::builder(&general_panel).with_label("Updates:").build();
+	let channel_choices = vec!["Stable releases".to_string(), "Test builds".to_string()];
 	let channel_choice =
 		ComboBox::builder(&general_panel).with_choices(channel_choices).with_style(ComboBoxStyle::ReadOnly).build();
 	let channel_index = match update_channel {
@@ -383,7 +383,7 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 	let autoload_sizer = BoxSizer::builder(Orientation::Horizontal).build();
 	autoload_sizer.add(&autoload_label, 0, SizerFlag::AlignCenterVertical | SizerFlag::Right, 8);
 	autoload_sizer.add(&autoload_choice, 1, SizerFlag::Expand, 0);
-	let fetch_limit_label = StaticText::builder(&timeline_panel).with_label("Posts to &fetch per request:").build();
+	let fetch_limit_label = StaticText::builder(&timeline_panel).with_label("Posts to &load at a time:").build();
 	let fetch_limit_spin =
 		SpinCtrl::builder(&timeline_panel).with_range(1, 40).with_initial_value(i32::from(fetch_limit)).build();
 	let fetch_limit_sizer = BoxSizer::builder(Orientation::Horizontal).build();
@@ -402,7 +402,7 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 	let cw_sizer = BoxSizer::builder(Orientation::Horizontal).build();
 	cw_sizer.add(&cw_label, 0, SizerFlag::AlignCenterVertical | SizerFlag::Right, 8);
 	cw_sizer.add(&cw_choice, 1, SizerFlag::Expand, 0);
-	let emoji_mode_label = StaticText::builder(&timeline_panel).with_label("Display name &emoji filtering:").build();
+	let emoji_mode_label = StaticText::builder(&timeline_panel).with_label("Hide &emoji in names:").build();
 	let emoji_mode_choices =
 		vec!["None".to_string(), "Unicode emojis".to_string(), "Instance emojis".to_string(), "All".to_string()];
 	let emoji_mode_choice =

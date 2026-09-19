@@ -416,7 +416,7 @@ pub(super) fn delete_post(ctx: &mut UiCommandContext<'_>) {
 			return;
 		}
 	} else {
-		live_region.announce("Cannot verify ownership");
+		live_region.announce("Could not tell whether this post is yours");
 		return;
 	}
 
@@ -447,7 +447,7 @@ pub(super) fn edit_post(ctx: &mut UiCommandContext<'_>) {
 			return;
 		}
 	} else {
-		live_region.announce("Cannot verify ownership");
+		live_region.announce("Could not tell whether this post is yours");
 		return;
 	}
 	if let Some(handle) = &state.network_handle {
@@ -536,7 +536,7 @@ pub(super) fn copy_post_link(ctx: &mut UiCommandContext<'_>) {
 			live_region.announce("Post has no link");
 		}
 	} else {
-		live_region.announce("Selected item is not a post");
+		live_region.announce("That is not a post");
 	}
 }
 

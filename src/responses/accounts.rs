@@ -242,7 +242,7 @@ pub(super) fn relationship_updated(
 	let rel = match result {
 		Ok(rel) => rel,
 		Err(err) => {
-			ctx.announce_failure("Failed to update relationship", &err);
+			ctx.announce_failure(&relationship_failure_message(action, target_name), &err);
 			return;
 		}
 	};
@@ -256,6 +256,24 @@ pub(super) fn relationship_updated(
 		dlg.update_relationships(std::slice::from_ref(&rel));
 	}
 	ctx.announce(&relationship_message(action, target_name));
+}
+
+fn relationship_failure_message(action: RelationshipAction, target_name: &str) -> String {
+	match action {
+		RelationshipAction::Follow => format!("Could not follow {target_name}"),
+		RelationshipAction::Unfollow => format!("Could not unfollow {target_name}"),
+		RelationshipAction::CancelFollowRequest => format!("Could not cancel the follow request to {target_name}"),
+		RelationshipAction::AcceptFollowRequest => format!("Could not accept the follow request from {target_name}"),
+		RelationshipAction::RejectFollowRequest => format!("Could not reject the follow request from {target_name}"),
+		RelationshipAction::Block => format!("Could not block {target_name}"),
+		RelationshipAction::Unblock => format!("Could not unblock {target_name}"),
+		RelationshipAction::Mute => format!("Could not mute {target_name}"),
+		RelationshipAction::Unmute => format!("Could not unmute {target_name}"),
+		RelationshipAction::ShowBoosts => format!("Could not show boosts from {target_name}"),
+		RelationshipAction::HideBoosts => format!("Could not hide boosts from {target_name}"),
+		RelationshipAction::EnableNotifications => format!("Could not turn on notifications for {target_name}"),
+		RelationshipAction::DisableNotifications => format!("Could not turn off notifications for {target_name}"),
+	}
 }
 
 fn relationship_message(action: RelationshipAction, target_name: &str) -> String {
