@@ -13,22 +13,22 @@ use std::{fs::File, path::Path};
 /// Dropping this stops every sound still playing through it, so it must be
 /// kept alive for as long as playback should continue.
 pub struct AudioOutput {
-    sink: rodio::MixerDeviceSink,
+	sink: rodio::MixerDeviceSink,
 }
 
 impl AudioOutput {
-    /// Opens the system's default audio output device.
-    pub fn open() -> Result<Self, rodio::DeviceSinkError> {
-        let mut sink = rodio::DeviceSinkBuilder::open_default_sink()?;
-        // Closing the media player window or quitting the app drops this
-        // handle intentionally; that isn't a failure worth logging.
-        sink.log_on_drop(false);
-        Ok(Self { sink })
-    }
+	/// Opens the system's default audio output device.
+	pub fn open() -> Result<Self, rodio::DeviceSinkError> {
+		let mut sink = rodio::DeviceSinkBuilder::open_default_sink()?;
+		// Closing the media player window or quitting the app drops this
+		// handle intentionally; that isn't a failure worth logging.
+		sink.log_on_drop(false);
+		Ok(Self { sink })
+	}
 
-    pub fn mixer(&self) -> &rodio::mixer::Mixer {
-        self.sink.mixer()
-    }
+	pub fn mixer(&self) -> &rodio::mixer::Mixer {
+		self.sink.mixer()
+	}
 }
 
 /// Decodes and plays the audio file at `path` once, independently of any
@@ -36,9 +36,9 @@ impl AudioOutput {
 /// the file can't be read or decoded, since this is used for the best-effort
 /// favorite/notification sound.
 pub fn play_once(output: &AudioOutput, path: &Path) {
-    let Ok(file) = File::open(path) else { return };
-    let Ok(source) = rodio::Decoder::try_from(file) else { return };
-    let player = rodio::Player::connect_new(output.mixer());
-    player.append(source);
-    player.detach();
+	let Ok(file) = File::open(path) else { return };
+	let Ok(source) = rodio::Decoder::try_from(file) else { return };
+	let player = rodio::Player::connect_new(output.mixer());
+	player.append(source);
+	player.detach();
 }

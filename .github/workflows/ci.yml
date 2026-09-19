@@ -2,10 +2,10 @@ name: CI
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
     branches:
-      - master
+      - main
 jobs:
   fmt:
     name: Format check
@@ -45,4 +45,4 @@ jobs:
           cargo test
       - name: Run clippy
         run: |
-          cargo clippy --release
+          cargo clippy --release --all-targets -- -D warnings

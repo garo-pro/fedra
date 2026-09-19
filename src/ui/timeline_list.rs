@@ -82,11 +82,13 @@ impl ActivationHandler for TimelineActivationHandler {
 	}
 }
 
+type KeyDownCallback = Box<dyn Fn(&WindowEventData)>;
+
 struct Inner {
 	adapter: SubclassingAdapter,
 	state: Rc<RefCell<ListState>>,
 	on_selection_changed: Option<Box<dyn Fn()>>,
-	on_key_down: Option<Box<dyn Fn(&WindowEventData)>>,
+	on_key_down: Option<KeyDownCallback>,
 	action_cb_raw: usize,
 }
 
@@ -151,16 +153,15 @@ impl TimelineList {
 		let weak_inner = Rc::downgrade(&tl.inner);
 		let panel_copy = tl.panel;
 		let callback: Box<dyn Fn(ActionRequest)> = Box::new(move |request| {
-			if request.action == accesskit::Action::Focus {
-				if let Some(inner_rc) = weak_inner.upgrade() {
-					let temp_tl = TimelineList { panel: panel_copy, inner: inner_rc };
-					temp_tl.set_selection(Some(request.target_node));
+			if request.action == accesskit::Action::Focus
+				&& let Some(inner_rc) = weak_inner.upgrade()
+			{
+				let temp_tl = TimelineList { panel: panel_copy, inner: inner_rc };
+				temp_tl.set_selection(Some(request.target_node));
 
-					let cb =
-						temp_tl.inner.borrow().on_selection_changed.as_ref().map(|cb| std::ptr::from_ref(cb.as_ref()));
-					if let Some(cb_ptr) = cb {
-						unsafe { (*cb_ptr)() };
-					}
+				let cb = temp_tl.inner.borrow().on_selection_changed.as_ref().map(|cb| std::ptr::from_ref(cb.as_ref()));
+				if let Some(cb_ptr) = cb {
+					unsafe { (*cb_ptr)() };
 				}
 			}
 		});
@@ -252,25 +253,24 @@ impl TimelineList {
 
 			let focus_id = state.entries[new_idx].0;
 			let mut nodes = Vec::new();
-			if let Some(old) = old_idx {
-				if old != new_idx {
-					if let Some((old_id, old_text)) = state.entries.get(old).map(|(id, t)| (*id, t.clone())) {
-						// Use whatever was actually last displayed for this item, not the
-						// freshest text -- see `frozen_label` doc comment.
-						let label = match state.frozen_label.take() {
-							Some((fid, ftext)) if fid == old_id => ftext,
-							other => {
-								state.frozen_label = other;
-								old_text
-							}
-						};
-						let mut old_node = Node::new(Role::ListBoxOption);
-						old_node.set_label(label);
-						old_node.add_action(accesskit::Action::Focus);
-						old_node.set_position_in_set(old);
-						nodes.push((old_id, old_node));
+			if let Some(old) = old_idx
+				&& old != new_idx
+				&& let Some((old_id, old_text)) = state.entries.get(old).map(|(id, t)| (*id, t.clone()))
+			{
+				// Use whatever was actually last displayed for this item, not the
+				// freshest text -- see `frozen_label` doc comment.
+				let label = match state.frozen_label.take() {
+					Some((fid, ftext)) if fid == old_id => ftext,
+					other => {
+						state.frozen_label = other;
+						old_text
 					}
-				}
+				};
+				let mut old_node = Node::new(Role::ListBoxOption);
+				old_node.set_label(label);
+				old_node.add_action(accesskit::Action::Focus);
+				old_node.set_position_in_set(old);
+				nodes.push((old_id, old_node));
 			}
 
 			if let Some((new_id, new_text)) = state.entries.get(new_idx) {
@@ -450,35 +450,34 @@ impl TimelineList {
 		let focus_id = valid_focus.unwrap_or(ROOT_ID);
 		let new_idx = valid_focus.and_then(|id| state.entries.iter().position(|(nid, _)| *nid == id));
 		let mut nodes = Vec::new();
-		if let Some(old) = old_idx {
-			if Some(old) != new_idx {
-				if let Some((old_id, old_text)) = state.entries.get(old).map(|(id, t)| (*id, t.clone())) {
-					// Use whatever was actually last displayed for this item, not the
-					// freshest text -- see `frozen_label` doc comment.
-					let label = match state.frozen_label.take() {
-						Some((fid, ftext)) if fid == old_id => ftext,
-						other => {
-							state.frozen_label = other;
-							old_text
-						}
-					};
-					let mut old_node = Node::new(Role::ListBoxOption);
-					old_node.set_label(label);
-					old_node.add_action(accesskit::Action::Focus);
-					old_node.set_position_in_set(old);
-					nodes.push((old_id, old_node));
+		if let Some(old) = old_idx
+			&& Some(old) != new_idx
+			&& let Some((old_id, old_text)) = state.entries.get(old).map(|(id, t)| (*id, t.clone()))
+		{
+			// Use whatever was actually last displayed for this item, not the
+			// freshest text -- see `frozen_label` doc comment.
+			let label = match state.frozen_label.take() {
+				Some((fid, ftext)) if fid == old_id => ftext,
+				other => {
+					state.frozen_label = other;
+					old_text
 				}
-			}
+			};
+			let mut old_node = Node::new(Role::ListBoxOption);
+			old_node.set_label(label);
+			old_node.add_action(accesskit::Action::Focus);
+			old_node.set_position_in_set(old);
+			nodes.push((old_id, old_node));
 		}
-		if let Some(new) = new_idx {
-			if let Some((new_id, new_text)) = state.entries.get(new) {
-				let mut new_node = Node::new(Role::ListBoxOption);
-				new_node.set_label(new_text.clone());
-				new_node.add_action(accesskit::Action::Focus);
-				new_node.set_position_in_set(new);
-				new_node.set_selected(true);
-				nodes.push((*new_id, new_node));
-			}
+		if let Some(new) = new_idx
+			&& let Some((new_id, new_text)) = state.entries.get(new)
+		{
+			let mut new_node = Node::new(Role::ListBoxOption);
+			new_node.set_label(new_text.clone());
+			new_node.add_action(accesskit::Action::Focus);
+			new_node.set_position_in_set(new);
+			new_node.set_selected(true);
+			nodes.push((*new_id, new_node));
 		}
 		state.selected_index = new_idx;
 		drop(state);
@@ -497,7 +496,7 @@ impl TimelineList {
 		}
 
 		let now = Instant::now();
-		let expired = state.last_search_time.map_or(true, |t| now.duration_since(t).as_millis() > 1000);
+		let expired = state.last_search_time.is_none_or(|t| now.duration_since(t).as_millis() > 1000);
 		if expired {
 			state.search_buffer.clear();
 		}
@@ -573,10 +572,10 @@ impl TimelineList {
 		let state_rc = { self.inner.borrow().state.clone() };
 		let mut state = state_rc.borrow_mut();
 		let mut new_text = text.to_string();
-		if let Some(old) = &state.current_tree_announcement {
-			if old == &new_text {
-				new_text.push('\u{00A0}');
-			}
+		if let Some(old) = &state.current_tree_announcement
+			&& old == &new_text
+		{
+			new_text.push('\u{00A0}');
 		}
 		state.current_tree_announcement = Some(new_text.clone());
 

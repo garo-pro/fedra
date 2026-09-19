@@ -57,13 +57,10 @@ pub(super) fn do_favorite(state: &AppState, live_region: &crate::ui::timeline_li
 
 	let is_foreign =
 		matches!(state.timeline_manager.active().map(|t| &t.timeline_type), Some(TimelineType::InstanceLocal { .. }));
-	if is_foreign {
-		if let Some(url) = &target.url {
-			let interaction =
-				if target.favourited { ForeignInteraction::Unfavorite } else { ForeignInteraction::Favorite };
-			handle.send(NetworkCommand::ResolveAndInteract { url: url.clone(), interaction });
-			return;
-		}
+	if is_foreign && let Some(url) = &target.url {
+		let interaction = if target.favourited { ForeignInteraction::Unfavorite } else { ForeignInteraction::Favorite };
+		handle.send(NetworkCommand::ResolveAndInteract { url: url.clone(), interaction });
+		return;
 	}
 
 	let status_id = target.id.clone();
@@ -116,12 +113,10 @@ pub(super) fn do_pin(state: &AppState, live_region: &crate::ui::timeline_list::T
 
 	let is_foreign =
 		matches!(state.timeline_manager.active().map(|t| &t.timeline_type), Some(TimelineType::InstanceLocal { .. }));
-	if is_foreign {
-		if let Some(url) = &target.url {
-			let interaction = if target.pinned { ForeignInteraction::Unpin } else { ForeignInteraction::Pin };
-			handle.send(NetworkCommand::ResolveAndInteract { url: url.clone(), interaction });
-			return;
-		}
+	if is_foreign && let Some(url) = &target.url {
+		let interaction = if target.pinned { ForeignInteraction::Unpin } else { ForeignInteraction::Pin };
+		handle.send(NetworkCommand::ResolveAndInteract { url: url.clone(), interaction });
+		return;
 	}
 
 	let status_id = target.id.clone();
@@ -328,14 +323,12 @@ pub(super) fn reply(ctx: &mut UiCommandContext<'_>, reply_all: bool) {
 			state.timeline_manager.active().map(|t| &t.timeline_type),
 			Some(TimelineType::InstanceLocal { .. })
 		);
-		if is_foreign {
-			if let Some(url) = &target.url {
-				handle.send(NetworkCommand::ResolveAndInteract {
-					url: url.clone(),
-					interaction: ForeignInteraction::Reply(Box::new(post_data)),
-				});
-				return;
-			}
+		if is_foreign && let Some(url) = &target.url {
+			handle.send(NetworkCommand::ResolveAndInteract {
+				url: url.clone(),
+				interaction: ForeignInteraction::Reply(Box::new(post_data)),
+			});
+			return;
 		}
 		handle.send(NetworkCommand::Reply {
 			in_reply_to_id: target.id.clone(),
@@ -700,10 +693,10 @@ pub(super) fn play_media(ctx: &mut UiCommandContext<'_>) {
 			.enumerate()
 			.map(|(i, m)| {
 				let name = format!("{} {}", m.kind, i + 1);
-				if let Some(desc) = &m.description {
-					if !desc.is_empty() {
-						return format!("{} - {}", name, desc);
-					}
+				if let Some(desc) = &m.description
+					&& !desc.is_empty()
+				{
+					return format!("{} - {}", name, desc);
 				}
 				name
 			})
@@ -808,14 +801,12 @@ pub(super) fn vote(ctx: &mut UiCommandContext<'_>) {
 				state.timeline_manager.active().map(|t| &t.timeline_type),
 				Some(TimelineType::InstanceLocal { .. })
 			);
-			if is_foreign {
-				if let Some(url) = &target.url {
-					handle.send(NetworkCommand::ResolveAndInteract {
-						url: url.clone(),
-						interaction: ForeignInteraction::Vote(choices),
-					});
-					return;
-				}
+			if is_foreign && let Some(url) = &target.url {
+				handle.send(NetworkCommand::ResolveAndInteract {
+					url: url.clone(),
+					interaction: ForeignInteraction::Vote(choices),
+				});
+				return;
 			}
 			handle.send(NetworkCommand::VotePoll { poll_id: poll.id.clone(), choices });
 		} else {

@@ -370,7 +370,7 @@ impl HashtagDialog {
 		let handle = Self { dialog, list: tag_list, action_button, mute_button, tags: tags_rc.clone() };
 		let update_button_state = {
 			let tags = tags_rc.clone();
-			let view_btn = view_timeline_button.clone();
+			let view_btn = view_timeline_button;
 			let btn = action_button;
 			let mute_btn = mute_button;
 			let list = tag_list;

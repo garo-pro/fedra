@@ -101,7 +101,7 @@ impl FollowListDialog {
 
 		let relationships_click = relationships_rc.clone();
 		let current_account_click = current_account_rc.clone();
-		let panel_clone = panel.clone();
+		let panel_clone = panel;
 
 		let show_menu = Rc::new(move || {
 			let current = current_account_click.borrow();

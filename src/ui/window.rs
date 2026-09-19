@@ -213,15 +213,14 @@ pub fn bind_input_handlers(
 								event.skip(false);
 								return;
 							}
-						} else if k == 317 {
-							if mode == AutoloadMode::AtBoundary
-								&& sort_order == SortOrder::NewestToOldest
-								&& index + 1 == count
-							{
-								let _ = ui_tx_list_key.send(UiCommand::LoadMore);
-								event.skip(false);
-								return;
-							}
+						} else if k == 317
+							&& mode == AutoloadMode::AtBoundary
+							&& sort_order == SortOrder::NewestToOldest
+							&& index + 1 == count
+						{
+							let _ = ui_tx_list_key.send(UiCommand::LoadMore);
+							event.skip(false);
+							return;
 						}
 					}
 				}
@@ -427,14 +426,15 @@ pub fn bind_input_handlers(
 				return;
 			}
 
-			if !quick_mode && !ctrl && !shift && !alt && k >= 32 && k <= 126 {
-				if let Some(ch) = char::from_u32(k as u32) {
-					if ch.is_alphanumeric() {
-						timeline_list_key.type_ahead(ch);
-						event.skip(false);
-						return;
-					}
-				}
+			if !quick_mode
+				&& !ctrl && !shift
+				&& !alt && (32..=126).contains(&k)
+				&& let Some(ch) = char::from_u32(k as u32)
+				&& ch.is_alphanumeric()
+			{
+				timeline_list_key.type_ahead(ch);
+				event.skip(false);
+				return;
 			}
 
 			event.skip(true);
@@ -447,7 +447,7 @@ pub fn bind_input_handlers(
 	let context_menu_state_ctx = context_menu_state;
 	let timeline_list_ctx = parts.timeline_list.clone();
 	let shortcuts_ctx = shortcuts_cell;
-	let _ = parts.timeline_list.bind_internal(EventType::CONTEXT_MENU, move |_event| {
+	parts.timeline_list.bind_internal(EventType::CONTEXT_MENU, move |_event| {
 		if shutdown_ctx.get() {
 			return;
 		}
@@ -559,7 +559,7 @@ pub fn bind_input_handlers(
 			let pin_base = if cms.pinned { "&Unpin Post" } else { "&Pin Post" };
 			append_item(&mut menu, ID_PIN_POST, pin_base, ActionId::PinPost, "Pin or unpin this post on your profile");
 		}
-		let _ = timeline_list_ctx.popup_menu(&mut menu, None);
+		timeline_list_ctx.popup_menu(&mut menu, None);
 	});
 
 	let ui_tx_list = ui_tx.clone();

@@ -10,7 +10,10 @@ use crate::{
 	template::{DEFAULT_BOOST_TEMPLATE, DEFAULT_FAVORITE_TEMPLATE, DEFAULT_POST_TEMPLATE},
 };
 
-pub fn prompt_for_notification_types(frame: &Frame, initial_disabled: &[NotificationKind]) -> Option<Vec<NotificationKind>> {
+pub fn prompt_for_notification_types(
+	frame: &Frame,
+	initial_disabled: &[NotificationKind],
+) -> Option<Vec<NotificationKind>> {
 	let dialog = Dialog::builder(frame, "Notification Types").with_size(350, 340).build();
 	let panel = Panel::builder(&dialog).build();
 	let main_sizer = BoxSizer::builder(Orientation::Vertical).build();
@@ -317,8 +320,7 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 	let notification_sizer = BoxSizer::builder(Orientation::Horizontal).build();
 	notification_sizer.add(&notification_label, 0, SizerFlag::AlignCenterVertical | SizerFlag::Right, 8);
 	notification_sizer.add(&notification_choice, 1, SizerFlag::Expand, 0);
-	let notification_types_button =
-		Button::builder(&general_panel).with_label("Notification &Types...").build();
+	let notification_types_button = Button::builder(&general_panel).with_label("Notification &Types...").build();
 	let current_disabled_notification_types = Rc::new(RefCell::new(disabled_notification_types));
 	let disabled_types_clone = current_disabled_notification_types.clone();
 	let notification_types_frame = *frame;
@@ -381,8 +383,7 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 	let autoload_sizer = BoxSizer::builder(Orientation::Horizontal).build();
 	autoload_sizer.add(&autoload_label, 0, SizerFlag::AlignCenterVertical | SizerFlag::Right, 8);
 	autoload_sizer.add(&autoload_choice, 1, SizerFlag::Expand, 0);
-	let fetch_limit_label =
-		StaticText::builder(&timeline_panel).with_label("Posts to &fetch per request:").build();
+	let fetch_limit_label = StaticText::builder(&timeline_panel).with_label("Posts to &fetch per request:").build();
 	let fetch_limit_spin =
 		SpinCtrl::builder(&timeline_panel).with_range(1, 40).with_initial_value(i32::from(fetch_limit)).build();
 	let fetch_limit_sizer = BoxSizer::builder(Orientation::Horizontal).build();
@@ -505,7 +506,11 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 	let favorite_template_text = TextCtrl::builder(&template_panel)
 		.with_style(TextCtrlStyle::MultiLine)
 		.with_value(
-			templates.per_timeline.get("Home").and_then(|pt| pt.favorite.as_deref()).unwrap_or(DEFAULT_FAVORITE_TEMPLATE),
+			templates
+				.per_timeline
+				.get("Home")
+				.and_then(|pt| pt.favorite.as_deref())
+				.unwrap_or(DEFAULT_FAVORITE_TEMPLATE),
 		)
 		.build();
 	let template_button_sizer = BoxSizer::builder(Orientation::Horizontal).build();

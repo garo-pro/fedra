@@ -102,10 +102,7 @@ impl TimelineType {
 	}
 
 	pub const fn requires_auth(&self) -> bool {
-		match self {
-			Self::InstanceLocal { .. } => false,
-			_ => true,
-		}
+		!matches!(self, Self::InstanceLocal { .. })
 	}
 
 	pub const fn supports_paging(&self) -> bool {

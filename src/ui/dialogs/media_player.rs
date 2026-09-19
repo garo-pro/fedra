@@ -26,18 +26,23 @@ use crate::audio;
 // via `wxdragon::call_after`, and callbacks that DO need to close over
 // widgets/Rc state are registered here, keyed by task id, so they're only
 // ever stored and invoked on the main thread.
+type TaskCallbacks<T> = RefCell<HashMap<usize, Box<T>>>;
+
 thread_local! {
 	static ACTIVE_PROGRESS: RefCell<Option<ProgressDialog>> = const { RefCell::new(None) };
-	static ACTIVE_DOWNLOAD_DONE: RefCell<HashMap<usize, Box<dyn FnOnce(DownloadOutcome)>>> = RefCell::new(HashMap::new());
-	static ACTIVE_LOAD_DONE: RefCell<HashMap<usize, Box<dyn FnOnce(Result<DecodedSource, String>)>>> = RefCell::new(HashMap::new());
-	static ACTIVE_IMAGE_DONE: RefCell<HashMap<usize, Box<dyn FnOnce(Result<DecodedImage, String>)>>> = RefCell::new(HashMap::new());
-	static ACTIVE_TICKS: RefCell<HashMap<usize, Box<dyn Fn(TickerUpdate)>>> = RefCell::new(HashMap::new());
+	static ACTIVE_DOWNLOAD_DONE: TaskCallbacks<dyn FnOnce(DownloadOutcome)> = RefCell::new(HashMap::new());
+	static ACTIVE_LOAD_DONE: TaskCallbacks<dyn FnOnce(Result<DecodedSource, String>)> = RefCell::new(HashMap::new());
+	static ACTIVE_IMAGE_DONE: TaskCallbacks<dyn FnOnce(Result<DecodedImage, String>)> = RefCell::new(HashMap::new());
+	static ACTIVE_TICKS: TaskCallbacks<dyn Fn(TickerUpdate)> = RefCell::new(HashMap::new());
 }
 
 /// A progress report sent to whatever's registered in [`ACTIVE_TICKS`].
 #[derive(Clone, Copy)]
 enum TickerUpdate {
-	Downloading { downloaded: u64, total: u64 },
+	Downloading {
+		downloaded: u64,
+		total: u64,
+	},
 	/// The download itself finished, but decoding hasn't caught up yet (for
 	/// some formats, working out an accurate duration means scanning a good
 	/// chunk of the file). Without this, the status label would sit on
@@ -112,10 +117,10 @@ impl MediaLiveRegion {
 	fn announce(&self, text: &str) {
 		let mut new_text = text.to_string();
 		let mut last = self.last_announcement.borrow_mut();
-		if let Some(old) = last.as_ref() {
-			if *old == new_text {
-				new_text.push('\u{00A0}');
-			}
+		if let Some(old) = last.as_ref()
+			&& *old == new_text
+		{
+			new_text.push('\u{00A0}');
 		}
 		*last = Some(new_text.clone());
 
@@ -316,8 +321,8 @@ fn spawn_progress_download(
 			ui_call_after(move || {
 				ACTIVE_PROGRESS.with(|p| {
 					if let Some(dialog) = p.borrow().as_ref() {
-						if t > 0 {
-							let percent = i32::try_from(d * 100 / t).unwrap_or(i32::MAX);
+						if let Some(fraction) = (d * 100).checked_div(t) {
+							let percent = i32::try_from(fraction).unwrap_or(i32::MAX);
 							if !dialog.update(percent, None) {
 								current_cancelled.store(true, Ordering::Relaxed);
 							}
@@ -387,7 +392,11 @@ fn spawn_progress_download(
 /// media file" command in both the player and the image viewer.
 fn download_to_user_file(frame: &Frame, url: &str) {
 	let default_file = if let Ok(u) = Url::parse(url) {
-		u.path_segments().and_then(|segments| segments.last()).filter(|s| !s.is_empty()).unwrap_or("media").to_string()
+		u.path_segments()
+			.and_then(|mut segments| segments.next_back())
+			.filter(|s| !s.is_empty())
+			.unwrap_or("media")
+			.to_string()
 	} else {
 		"media".to_string()
 	};
@@ -396,45 +405,45 @@ fn download_to_user_file(frame: &Frame, url: &str) {
 		.with_default_file(&default_file)
 		.with_style(FileDialogStyle::Save | FileDialogStyle::OverwritePrompt)
 		.build();
-	if dialog.show_modal() == ID_OK {
-		if let Some(path) = dialog.get_path() {
-			let path = PathBuf::from(path);
-			let target = *frame;
-			let cleanup_path = path.clone();
-			spawn_progress_download(
-				frame,
-				url.to_string(),
-				path,
-				"Downloading Media",
-				"Downloading media...",
-				move |outcome| match outcome {
-					DownloadOutcome::Success => {
-						if target.is_valid() {
-							let dlg = MessageDialog::builder(&target, "Download complete.", "Fedra")
-								.with_style(MessageDialogStyle::OK | MessageDialogStyle::IconInformation)
-								.build();
-							dlg.show_modal();
-							dlg.destroy();
-							target.set_focus();
-						}
+	if dialog.show_modal() == ID_OK
+		&& let Some(path) = dialog.get_path()
+	{
+		let path = PathBuf::from(path);
+		let target = *frame;
+		let cleanup_path = path.clone();
+		spawn_progress_download(
+			frame,
+			url.to_string(),
+			path,
+			"Downloading Media",
+			"Downloading media...",
+			move |outcome| match outcome {
+				DownloadOutcome::Success => {
+					if target.is_valid() {
+						let dlg = MessageDialog::builder(&target, "Download complete.", "Fedra")
+							.with_style(MessageDialogStyle::OK | MessageDialogStyle::IconInformation)
+							.build();
+						dlg.show_modal();
+						dlg.destroy();
+						target.set_focus();
 					}
-					DownloadOutcome::Cancelled => {
-						let _ = std::fs::remove_file(&cleanup_path);
+				}
+				DownloadOutcome::Cancelled => {
+					let _ = std::fs::remove_file(&cleanup_path);
+				}
+				DownloadOutcome::Failed(e) => {
+					if target.is_valid() {
+						let msg = format!("Failed to download media: {e}");
+						let dlg = MessageDialog::builder(&target, &msg, "Fedra")
+							.with_style(MessageDialogStyle::OK | MessageDialogStyle::IconError)
+							.build();
+						dlg.show_modal();
+						dlg.destroy();
+						target.set_focus();
 					}
-					DownloadOutcome::Failed(e) => {
-						if target.is_valid() {
-							let msg = format!("Failed to download media: {e}");
-							let dlg = MessageDialog::builder(&target, &msg, "Fedra")
-								.with_style(MessageDialogStyle::OK | MessageDialogStyle::IconError)
-								.build();
-							dlg.show_modal();
-							dlg.destroy();
-							target.set_focus();
-						}
-					}
-				},
-			);
-		}
+				}
+			},
+		);
 	}
 	dialog.destroy();
 }
@@ -538,7 +547,6 @@ pub fn show_media_player(_parent: &dyn WxWidget, url: String, kind: &str, _acces
 	let ticker_id = NEXT_TASK_ID.fetch_add(1, Ordering::Relaxed);
 	ACTIVE_TICKS.with(|t| {
 		t.borrow_mut().insert(ticker_id, {
-			let frame = frame.clone();
 			Box::new(move |update: TickerUpdate| {
 				if !frame.is_valid() {
 					return;
@@ -559,14 +567,15 @@ pub fn show_media_player(_parent: &dyn WxWidget, url: String, kind: &str, _acces
 
 	frame.on_menu_selected({
 		let state = state.clone();
-		let frm = frame.clone();
+		let frm = frame;
 		move |event| match event.get_id() {
 			ID_PLAY_PAUSE => {
 				with_session(&state, &lr, |s| {
 					if s.player.empty() {
 						// Reached the end: start over from the beginning
 						// rather than doing nothing.
-						match std::fs::File::open(&s.progress.dest).ok().and_then(|f| rodio::Decoder::try_from(f).ok()) {
+						match std::fs::File::open(&s.progress.dest).ok().and_then(|f| rodio::Decoder::try_from(f).ok())
+						{
 							Some(decoder) => {
 								s.player.append(decoder);
 								s.player.play();
@@ -647,14 +656,16 @@ pub fn show_media_player(_parent: &dyn WxWidget, url: String, kind: &str, _acces
 	let load_id = NEXT_TASK_ID.fetch_add(1, Ordering::Relaxed);
 	ACTIVE_LOAD_DONE.with(|d| {
 		d.borrow_mut().insert(load_id, {
-			let frm = frame.clone();
+			let frm = frame;
 			Box::new(move |result: Result<DecodedSource, String>| {
 				still_loading.store(false, Ordering::Release);
 				if !frm.is_valid() {
 					return;
 				}
 				let outcome = result.and_then(|decoded| {
-					audio::AudioOutput::open().map(|output| (output, decoded)).map_err(|e| format!("Could not open audio output: {e}"))
+					audio::AudioOutput::open()
+						.map(|output| (output, decoded))
+						.map_err(|e| format!("Could not open audio output: {e}"))
 				});
 				match outcome {
 					Ok((output, decoded)) => {
@@ -749,7 +760,7 @@ fn show_image_viewer(url: String) {
 	frame.set_menu_bar(menu_bar);
 
 	frame.on_menu_selected({
-		let frm = frame.clone();
+		let frm = frame;
 		let url = url.clone();
 		move |event| match event.get_id() {
 			ID_DOWNLOAD => {
@@ -782,7 +793,6 @@ fn show_image_viewer(url: String) {
 	let ticker_id = NEXT_TASK_ID.fetch_add(1, Ordering::Relaxed);
 	ACTIVE_TICKS.with(|t| {
 		t.borrow_mut().insert(ticker_id, {
-			let frame = frame.clone();
 			Box::new(move |update: TickerUpdate| {
 				if !frame.is_valid() {
 					return;
@@ -804,7 +814,7 @@ fn show_image_viewer(url: String) {
 	let load_id = NEXT_TASK_ID.fetch_add(1, Ordering::Relaxed);
 	ACTIVE_IMAGE_DONE.with(|d| {
 		d.borrow_mut().insert(load_id, {
-			let frm = frame.clone();
+			let frm = frame;
 			Box::new(move |result: Result<DecodedImage, String>| {
 				still_loading.store(false, Ordering::Release);
 				if !frm.is_valid() {

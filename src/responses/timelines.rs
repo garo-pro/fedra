@@ -116,17 +116,15 @@ pub(super) fn loaded(
 				}
 				timeline.next_max_id = next_max_id;
 
-				if is_active {
-					if let Some(idx) = timeline_index_opt {
-						update_active_timeline_ui(
-							timeline_list,
-							timeline,
-							suppress_selection,
-							&view_options,
-							&state.cw_expanded,
-							idx,
-						);
-					}
+				if is_active && let Some(idx) = timeline_index_opt {
+					update_active_timeline_ui(
+						timeline_list,
+						timeline,
+						suppress_selection,
+						&view_options,
+						&state.cw_expanded,
+						idx,
+					);
 				}
 			} else {
 				// A fresh fetch of the newest posts (initial open, or a manual/background
@@ -148,22 +146,20 @@ pub(super) fn loaded(
 					}
 				}
 				// Restore selected post if it exists in the freshly loaded entries.
-				if let Some(ref id) = restore_id {
-					if timeline.entries.iter().any(|e| e.id() == id.as_str()) {
-						timeline.selected_id = Some(id.clone());
-					}
+				if let Some(ref id) = restore_id
+					&& timeline.entries.iter().any(|e| e.id() == id.as_str())
+				{
+					timeline.selected_id = Some(id.clone());
 				}
-				if is_active {
-					if let Some(idx) = timeline_index_opt {
-						update_active_timeline_ui(
-							timeline_list,
-							timeline,
-							suppress_selection,
-							&view_options,
-							&state.cw_expanded,
-							idx,
-						);
-					}
+				if is_active && let Some(idx) = timeline_index_opt {
+					update_active_timeline_ui(
+						timeline_list,
+						timeline,
+						suppress_selection,
+						&view_options,
+						&state.cw_expanded,
+						idx,
+					);
 				}
 				// Only adopt the new pagination cursor on the initial load; a merge keeps
 				// the existing (older) cursor, which still correctly points past the
@@ -281,23 +277,7 @@ pub(super) fn search_loaded(
 					live_region.announce("No more results");
 				} else {
 					timeline.entries.extend(new_entries.clone());
-					if is_active {
-						if let Some(idx) = timeline_index_opt {
-							update_active_timeline_ui(
-								timeline_list,
-								timeline,
-								suppress_selection,
-								&view_options,
-								&state.cw_expanded,
-								idx,
-							);
-						}
-					}
-				}
-			} else {
-				timeline.entries = new_entries;
-				if is_active {
-					if let Some(idx) = timeline_index_opt {
+					if is_active && let Some(idx) = timeline_index_opt {
 						update_active_timeline_ui(
 							timeline_list,
 							timeline,
@@ -307,6 +287,18 @@ pub(super) fn search_loaded(
 							idx,
 						);
 					}
+				}
+			} else {
+				timeline.entries = new_entries;
+				if is_active && let Some(idx) = timeline_index_opt {
+					update_active_timeline_ui(
+						timeline_list,
+						timeline,
+						suppress_selection,
+						&view_options,
+						&state.cw_expanded,
+						idx,
+					);
 				}
 			}
 			timeline.loading_more = false;

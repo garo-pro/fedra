@@ -152,10 +152,10 @@ pub fn switch_to_account(
 		if let Ok(info) = client.get_instance_info() {
 			state.max_post_chars = Some(info.max_post_chars);
 			state.poll_limits = info.poll_limits;
-			if let Some(ref streaming_url) = info.streaming_url {
-				if let Ok(parsed) = Url::parse(streaming_url) {
-					state.streaming_url = Some(parsed);
-				}
+			if let Some(ref streaming_url) = info.streaming_url
+				&& let Ok(parsed) = Url::parse(streaming_url)
+			{
+				state.streaming_url = Some(parsed);
 			}
 		}
 		let needs_verify = state.active_account().and_then(|a| a.acct.as_deref()).is_none()
@@ -285,10 +285,10 @@ pub fn switch_to_account(
 		if let Some(index) = state.timeline_manager.index_of(&saved_type) {
 			state.timeline_manager.set_active(index);
 		}
-		if let Some(post_id) = state.config.saved_selected_post_id.take() {
-			if let Some(active_type) = state.timeline_manager.active().map(|t| t.timeline_type.clone()) {
-				state.pending_restore_post_id = Some((active_type, post_id));
-			}
+		if let Some(post_id) = state.config.saved_selected_post_id.take()
+			&& let Some(active_type) = state.timeline_manager.active().map(|t| t.timeline_type.clone())
+		{
+			state.pending_restore_post_id = Some((active_type, post_id));
 		}
 	} else {
 		state.config.saved_selected_post_id = None;

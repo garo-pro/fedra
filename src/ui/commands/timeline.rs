@@ -240,21 +240,21 @@ pub(super) fn load_more_background(ctx: &mut UiCommandContext<'_>) {
 pub(super) fn home_pressed(ctx: &mut UiCommandContext<'_>) {
 	let state = &mut *ctx.state;
 	let timeline_list = &ctx.timeline_list;
-	if timeline_list.get_selection() != Some(0) {
-		if let Some(active) = state.timeline_manager.active_mut() {
-			let effective_sort_order =
-				if state.config.preserve_thread_order && matches!(active.timeline_type, TimelineType::Thread { .. }) {
-					SortOrder::OldestToNewest
-				} else {
-					state.config.sort_order
-				};
-			let node_id =
-				crate::ui::timeline_view::list_index_to_entry_index(0, active.entries.len(), effective_sort_order)
-					.map(|entry_index| crate::ui::timeline_view::entry_id_to_node_id(active.entries[entry_index].id()));
-			timeline_list.set_selection(node_id);
+	if timeline_list.get_selection() != Some(0)
+		&& let Some(active) = state.timeline_manager.active_mut()
+	{
+		let effective_sort_order =
+			if state.config.preserve_thread_order && matches!(active.timeline_type, TimelineType::Thread { .. }) {
+				SortOrder::OldestToNewest
+			} else {
+				state.config.sort_order
+			};
+		let node_id =
+			crate::ui::timeline_view::list_index_to_entry_index(0, active.entries.len(), effective_sort_order)
+				.map(|entry_index| crate::ui::timeline_view::entry_id_to_node_id(active.entries[entry_index].id()));
+		timeline_list.set_selection(node_id);
 
-			sync_timeline_selection_from_list(active, timeline_list, effective_sort_order);
-		}
+		sync_timeline_selection_from_list(active, timeline_list, effective_sort_order);
 	}
 }
 

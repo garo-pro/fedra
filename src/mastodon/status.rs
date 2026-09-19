@@ -131,10 +131,10 @@ impl Mention {
 		if self.acct.contains('@') {
 			self.acct.clone()
 		} else {
-			if let Ok(url) = reqwest::Url::parse(&self.url) {
-				if let Some(host) = url.host_str() {
-					return format!("{}@{}", self.acct, host);
-				}
+			if let Ok(url) = reqwest::Url::parse(&self.url)
+				&& let Some(host) = url.host_str()
+			{
+				return format!("{}@{}", self.acct, host);
 			}
 			self.acct.clone()
 		}

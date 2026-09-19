@@ -251,7 +251,7 @@ pub fn update_menu_labels(menu_bar: &MenuBar, state: &AppState) {
 		copy_post_item.enable(status.is_some());
 	}
 	if let Some(copy_post_link_item) = menu_bar.find_item(ID_COPY_POST_LINK) {
-		let enable = status.map_or(false, |s| s.reblog.as_ref().map_or(s, std::convert::AsRef::as_ref).url.is_some());
+		let enable = status.is_some_and(|s| s.reblog.as_ref().map_or(s, std::convert::AsRef::as_ref).url.is_some());
 		copy_post_link_item.enable(enable);
 	}
 	if let Some((_, post_menu)) = menu_bar.find_item_and_menu(ID_VIEW_HASHTAGS) {
@@ -443,7 +443,7 @@ pub fn update_menu_labels(menu_bar: &MenuBar, state: &AppState) {
 	});
 
 	let supports_paging =
-		state.timeline_manager.active().map_or(false, |timeline| timeline.timeline_type.supports_paging());
+		state.timeline_manager.active().is_some_and(|timeline| timeline.timeline_type.supports_paging());
 	set_item_label(menu_bar, ID_LOAD_MORE, "Load &More", &sc.get_menu_str(q, ActionId::LoadMore));
 	if let Some(load_more_item) = menu_bar.find_item(ID_LOAD_MORE) {
 		load_more_item.enable(supports_paging);

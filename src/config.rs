@@ -11,7 +11,9 @@ use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
 use url::Url;
 
-use crate::template::{DEFAULT_BOOST_TEMPLATE, DEFAULT_FAVORITE_TEMPLATE, DEFAULT_POST_TEMPLATE, DEFAULT_QUOTE_TEMPLATE};
+use crate::template::{
+	DEFAULT_BOOST_TEMPLATE, DEFAULT_FAVORITE_TEMPLATE, DEFAULT_POST_TEMPLATE, DEFAULT_QUOTE_TEMPLATE,
+};
 
 const APP_NAME: &str = "Fedra";
 const CONFIG_FILENAME: &str = "config.json";

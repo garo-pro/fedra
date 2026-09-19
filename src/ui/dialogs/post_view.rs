@@ -7,13 +7,13 @@ use wxdragon::{
 use crate::{ID_BOOST, ID_FAVORITE, ID_REPLY, UiCommand, mastodon::Status};
 
 fn strip_quote_html(html: &str) -> String {
-	if let Some(start) = html.find("<span class=\"quote-inline\">") {
-		if let Some(end) = html[start..].find("</span>") {
-			let mut cleaned = String::new();
-			cleaned.push_str(&html[..start]);
-			cleaned.push_str(&html[start + end + 7..]);
-			return cleaned;
-		}
+	if let Some(start) = html.find("<span class=\"quote-inline\">")
+		&& let Some(end) = html[start..].find("</span>")
+	{
+		let mut cleaned = String::new();
+		cleaned.push_str(&html[..start]);
+		cleaned.push_str(&html[start + end + 7..]);
+		return cleaned;
 	}
 
 	let mut start_idx = 0;
@@ -21,44 +21,44 @@ fn strip_quote_html(html: &str) -> String {
 		start_idx = 3;
 	}
 
-	if let Some(re_idx) = html[start_idx..].find("RE: ") {
-		if re_idx < 30 {
-			let actual_re_idx = start_idx + re_idx;
-			let mut end_cut = actual_re_idx;
+	if let Some(re_idx) = html[start_idx..].find("RE: ")
+		&& re_idx < 30
+	{
+		let actual_re_idx = start_idx + re_idx;
+		let mut end_cut = actual_re_idx;
 
-			if let Some(a_idx) = html[actual_re_idx..].find("</a>") {
-				end_cut = actual_re_idx + a_idx + 4;
-			} else if let Some(br_idx) = html[actual_re_idx..].find("<br") {
-				end_cut = actual_re_idx + br_idx;
-			} else if let Some(p_idx) = html[actual_re_idx..].find("</p>") {
-				end_cut = actual_re_idx + p_idx;
-			}
+		if let Some(a_idx) = html[actual_re_idx..].find("</a>") {
+			end_cut = actual_re_idx + a_idx + 4;
+		} else if let Some(br_idx) = html[actual_re_idx..].find("<br") {
+			end_cut = actual_re_idx + br_idx;
+		} else if let Some(p_idx) = html[actual_re_idx..].find("</p>") {
+			end_cut = actual_re_idx + p_idx;
+		}
 
-			let remainder = &html[end_cut..];
-			let mut rest = remainder.trim_start();
+		let remainder = &html[end_cut..];
+		let mut rest = remainder.trim_start();
 
-			if let Some(stripped) = rest.strip_prefix("</span>") {
-				rest = stripped.trim_start();
-			}
+		if let Some(stripped) = rest.strip_prefix("</span>") {
+			rest = stripped.trim_start();
+		}
 
-			if let Some(stripped) =
-				rest.strip_prefix("<br>").or_else(|| rest.strip_prefix("<br />")).or_else(|| rest.strip_prefix("<br/>"))
-			{
-				rest = stripped.trim_start();
-			} else if let Some(stripped) = rest.strip_prefix("</p>") {
-				rest = stripped.trim_start();
-			}
+		if let Some(stripped) =
+			rest.strip_prefix("<br>").or_else(|| rest.strip_prefix("<br />")).or_else(|| rest.strip_prefix("<br/>"))
+		{
+			rest = stripped.trim_start();
+		} else if let Some(stripped) = rest.strip_prefix("</p>") {
+			rest = stripped.trim_start();
+		}
 
-			let prefix = &html[..actual_re_idx];
-			if prefix == "<p>" {
-				if rest.starts_with("<p>") {
-					return rest.to_string();
-				} else {
-					return format!("<p>{}", rest);
-				}
+		let prefix = &html[..actual_re_idx];
+		if prefix == "<p>" {
+			if rest.starts_with("<p>") {
+				return rest.to_string();
 			} else {
-				return format!("{}{}", prefix, rest);
+				return format!("<p>{}", rest);
 			}
+		} else {
+			return format!("{}{}", prefix, rest);
 		}
 	}
 	html.to_string()

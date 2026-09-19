@@ -703,15 +703,13 @@ fn network_loop(
 					_ => {
 						let mut statuses = Vec::new();
 
-						if let TimelineType::User { ref id, .. } = timeline_type {
-							if max_id.is_none() {
-								if let Ok(mut pinned) = client.get_pinned_statuses(access_token, id) {
-									for p in &mut pinned {
-										p.pinned = true;
-									}
-									statuses.extend(pinned);
-								}
+						if let TimelineType::User { ref id, .. } = timeline_type
+							&& max_id.is_none() && let Ok(mut pinned) = client.get_pinned_statuses(access_token, id)
+						{
+							for p in &mut pinned {
+								p.pinned = true;
 							}
+							statuses.extend(pinned);
 						}
 
 						let res = client.get_timeline(access_token, &timeline_type, limit, max_id.as_deref());
@@ -1118,26 +1116,22 @@ fn network_loop(
 					None
 				};
 
-				if let Some(id) = resolved_id {
-					if let Ok(mut rels) = client.get_relationships(access_token, slice::from_ref(&id)) {
-						if let Some(rel) = rels.pop() {
-							let (action, result) = if rel.following {
-								(RelationshipAction::Unfollow, client.unfollow_account(access_token, &id))
-							} else if rel.requested {
-								(RelationshipAction::CancelFollowRequest, client.unfollow_account(access_token, &id))
-							} else {
-								(
-									RelationshipAction::Follow,
-									client.follow_account_with_options(access_token, &id, true, false),
-								)
-							};
-							send_response(
-								responses,
-								ui_waker,
-								NetworkResponse::RelationshipUpdated { _account_id: id, target_name, action, result },
-							);
-						}
-					}
+				if let Some(id) = resolved_id
+					&& let Ok(mut rels) = client.get_relationships(access_token, slice::from_ref(&id))
+					&& let Some(rel) = rels.pop()
+				{
+					let (action, result) = if rel.following {
+						(RelationshipAction::Unfollow, client.unfollow_account(access_token, &id))
+					} else if rel.requested {
+						(RelationshipAction::CancelFollowRequest, client.unfollow_account(access_token, &id))
+					} else {
+						(RelationshipAction::Follow, client.follow_account_with_options(access_token, &id, true, false))
+					};
+					send_response(
+						responses,
+						ui_waker,
+						NetworkResponse::RelationshipUpdated { _account_id: id, target_name, action, result },
+					);
 				}
 			}
 			Ok(NetworkCommand::UnfollowAccount { account_id, target_name, action }) => {

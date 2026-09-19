@@ -187,9 +187,9 @@ pub(super) fn follow_list_loaded(
 	let account_ids: Vec<String> = accounts.iter().map(|a| a.id.clone()).collect();
 	*list.dialog_slot(ctx.state) = Some(dlg);
 	if let Some(h) = &ctx.state.network_handle {
-		let _ = h.send(NetworkCommand::FetchRelationshipsForList { account_ids, for_followers: list.is_followers() });
+		h.send(NetworkCommand::FetchRelationshipsForList { account_ids, for_followers: list.is_followers() });
 		if let Some(max_id) = next_max_id {
-			let _ = h.send(list.next_page_command(account_id, max_id));
+			h.send(list.next_page_command(account_id, max_id));
 		}
 	}
 }
@@ -225,11 +225,10 @@ pub(super) fn follow_list_next_page(
 	if let Some(h) = &ctx.state.network_handle {
 		if !accounts.is_empty() {
 			let account_ids = accounts.iter().map(|a| a.id.clone()).collect();
-			let _ =
-				h.send(NetworkCommand::FetchRelationshipsForList { account_ids, for_followers: list.is_followers() });
+			h.send(NetworkCommand::FetchRelationshipsForList { account_ids, for_followers: list.is_followers() });
 		}
 		if let Some((account_id, max_id)) = next_page {
-			let _ = h.send(list.next_page_command(account_id, max_id));
+			h.send(list.next_page_command(account_id, max_id));
 		}
 	}
 }
