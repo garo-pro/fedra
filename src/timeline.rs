@@ -272,6 +272,14 @@ impl TimelineEntry {
 	}
 }
 
+/// How many entries a live timeline keeps. Streaming, the periodic poll and refreshes only ever
+/// add posts, so without a ceiling a busy timeline grows for as long as Fedra runs, and every
+/// redraw of it gets slower. Posts dropped from the old end come back with "load more".
+const MAX_LIVE_ENTRIES: usize = 1000;
+/// Entries past the selected one that trimming always keeps, so reading back through older posts
+/// isn't undone by the next post to arrive. Larger than any fetch page.
+const KEEP_PAST_SELECTION: usize = 200;
+
 #[allow(clippy::struct_field_names)]
 #[allow(clippy::struct_excessive_bools, reason = "independent per-timeline state flags")]
 pub struct Timeline {
@@ -319,6 +327,36 @@ impl Timeline {
 			pending_find_next: false,
 			pending_find_prev: false,
 		}
+	}
+
+	/// Drops the oldest entries of a live timeline past [`MAX_LIVE_ENTRIES`], never the selected
+	/// entry, anything newer than it, or the [`KEEP_PAST_SELECTION`] entries after it.
+	///
+	/// Only applies to timelines that grow on their own and page by the ids of their own entries,
+	/// since the "load more" cursor is rebuilt from the oldest entry left.
+	pub fn trim_oldest(&mut self) {
+		let live = matches!(
+			self.timeline_type,
+			TimelineType::Home
+				| TimelineType::Notifications
+				| TimelineType::Mentions
+				| TimelineType::Local
+				| TimelineType::Federated
+				| TimelineType::List { .. }
+		);
+		if !live || self.entries.len() <= MAX_LIVE_ENTRIES {
+			return;
+		}
+		let selected = self.selected_id.as_deref().and_then(|id| self.entries.iter().position(|e| e.id() == id));
+		let keep = selected.map_or(MAX_LIVE_ENTRIES, |pos| MAX_LIVE_ENTRIES.max(pos + 1 + KEEP_PAST_SELECTION));
+		if keep >= self.entries.len() {
+			return;
+		}
+		self.entries.truncate(keep);
+		self.entries.shrink_to(keep * 2);
+		// The saved cursor points past the entries just dropped; load_more falls back to the
+		// oldest entry left.
+		self.next_max_id = None;
 	}
 
 	pub fn find_next(&self, start_index: usize, config: &Config) -> Option<usize> {
@@ -526,5 +564,58 @@ impl TimelineManager {
 impl Default for TimelineManager {
 	fn default() -> Self {
 		Self::new()
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::{KEEP_PAST_SELECTION, MAX_LIVE_ENTRIES, Timeline, TimelineEntry, TimelineType};
+	use crate::mastodon::Tag;
+
+	/// A timeline of `len` entries whose ids are their positions, newest first.
+	fn timeline(timeline_type: TimelineType, len: usize) -> Timeline {
+		let mut timeline = Timeline::new(timeline_type);
+		timeline.entries = (0..len)
+			.map(|i| {
+				TimelineEntry::Hashtag(Tag {
+					name: i.to_string(),
+					url: String::new(),
+					following: false,
+					muted: false,
+					history: Vec::new(),
+				})
+			})
+			.collect();
+		timeline.next_max_id = Some("cursor".to_string());
+		timeline
+	}
+
+	#[test]
+	fn trims_the_oldest_entries_of_a_live_timeline() {
+		let mut home = timeline(TimelineType::Home, MAX_LIVE_ENTRIES + 50);
+		home.trim_oldest();
+		assert_eq!(home.entries.len(), MAX_LIVE_ENTRIES);
+		assert_eq!(home.entries[0].id(), "0");
+		assert_eq!(home.next_max_id, None);
+	}
+
+	#[test]
+	fn keeps_the_selection_and_the_entries_just_past_it() {
+		let mut local = timeline(TimelineType::Local, 3 * MAX_LIVE_ENTRIES);
+		let selected = 2 * MAX_LIVE_ENTRIES;
+		local.selected_id = Some(selected.to_string());
+		local.trim_oldest();
+		assert_eq!(local.entries.len(), selected + 1 + KEEP_PAST_SELECTION);
+	}
+
+	#[test]
+	fn leaves_short_and_user_paged_timelines_alone() {
+		let mut home = timeline(TimelineType::Home, MAX_LIVE_ENTRIES);
+		home.trim_oldest();
+		assert_eq!(home.entries.len(), MAX_LIVE_ENTRIES);
+		assert_eq!(home.next_max_id.as_deref(), Some("cursor"));
+		let mut bookmarks = timeline(TimelineType::Bookmarks, MAX_LIVE_ENTRIES + 50);
+		bookmarks.trim_oldest();
+		assert_eq!(bookmarks.entries.len(), MAX_LIVE_ENTRIES + 50);
 	}
 }

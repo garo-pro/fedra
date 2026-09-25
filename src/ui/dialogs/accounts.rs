@@ -3,6 +3,7 @@ use std::{cell::RefCell, rc::Rc};
 use url::Url;
 use wxdragon::prelude::*;
 
+use super::DestroyOnDrop;
 use crate::config::Account;
 
 #[derive(Clone)]
@@ -19,6 +20,7 @@ pub fn show_manage_accounts_dialog(
 	active_id: Option<&str>,
 ) -> ManageAccountsResult {
 	let dialog = Dialog::builder(frame, "Account Manager").with_size(400, 350).build();
+	let _destroy = DestroyOnDrop(dialog);
 	let panel = Panel::builder(&dialog).build();
 	let main_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	let accounts_label = StaticText::builder(&panel).with_label("Accounts:").build();

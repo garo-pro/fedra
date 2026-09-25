@@ -1,9 +1,11 @@
 use wxdragon::prelude::*;
 
+use super::DestroyOnDrop;
 use crate::ui::keys;
 
 pub fn show_find_dialog(parent: &dyn WxWidget) -> Option<String> {
 	let dialog = Dialog::builder(parent, "Find text in timeline").with_size(350, 150).build();
+	let _destroy = DestroyOnDrop(dialog);
 	let panel = Panel::builder(&dialog).build();
 	let main_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	let label = StaticText::builder(&panel).with_label("Search for").build();

@@ -1,9 +1,11 @@
 use wxdragon::prelude::*;
 
+use super::DestroyOnDrop;
 use crate::{html, mastodon::Account, network::ProfileUpdate};
 
 pub fn show_profile_edit_dialog(frame: &Frame, current: &Account) -> Option<ProfileUpdate> {
 	let dialog = Dialog::builder(frame, "Edit Profile").with_size(600, 600).build();
+	let _destroy = DestroyOnDrop(dialog);
 	let panel = Panel::builder(&dialog).build();
 	let main_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	let scroll_win = ScrolledWindow::builder(&panel).build();

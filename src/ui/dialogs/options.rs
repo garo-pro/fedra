@@ -2,6 +2,7 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use wxdragon::prelude::*;
 
+use super::DestroyOnDrop;
 use crate::{
 	config::{
 		AutoloadMode, ContentWarningDisplay, DefaultTimeline, DisplayNameEmojiMode, HotkeyConfig, NotificationKind,
@@ -15,6 +16,7 @@ pub fn prompt_for_notification_types(
 	initial_disabled: &[NotificationKind],
 ) -> Option<Vec<NotificationKind>> {
 	let dialog = Dialog::builder(frame, "Notification Types").with_size(350, 340).build();
+	let _destroy = DestroyOnDrop(dialog);
 	let panel = Panel::builder(&dialog).build();
 	let main_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	let info_label = StaticText::builder(&panel)
@@ -58,6 +60,7 @@ pub fn prompt_for_notification_types(
 
 pub fn prompt_for_default_timelines(frame: &Frame, initial: &[DefaultTimeline]) -> Option<Vec<DefaultTimeline>> {
 	let dialog = Dialog::builder(frame, "Default Timelines").with_size(350, 300).build();
+	let _destroy = DestroyOnDrop(dialog);
 	let panel = Panel::builder(&dialog).build();
 	let main_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	let info_label =
@@ -100,6 +103,7 @@ pub fn prompt_for_default_timelines(frame: &Frame, initial: &[DefaultTimeline]) 
 
 fn prompt_for_hotkey(parent: &dyn WxWidget, initial: &HotkeyConfig) -> Option<HotkeyConfig> {
 	let dialog = Dialog::builder(parent, "Window Hotkey").with_size(300, 230).build();
+	let _destroy = DestroyOnDrop(dialog);
 	let panel = Panel::builder(&dialog).build();
 	let main_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	let ctrl_cb = CheckBox::builder(&panel).with_label("&Ctrl").build();
@@ -254,6 +258,7 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 		window_title_template,
 	} = input;
 	let dialog = Dialog::builder(frame, "Options").with_size(500, 520).build();
+	let _destroy = DestroyOnDrop(dialog);
 	let panel = Panel::builder(&dialog).build();
 	let main_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	let notebook = Notebook::builder(&panel).build();

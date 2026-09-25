@@ -130,6 +130,7 @@ pub(super) fn loaded(
 					if !fresh.is_empty() {
 						fresh.extend(std::mem::take(&mut timeline.entries));
 						timeline.entries = fresh;
+						timeline.trim_oldest();
 					}
 				}
 				if let Some(ref id) = restore_id

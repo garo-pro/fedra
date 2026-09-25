@@ -1,6 +1,10 @@
 use std::{
 	net::{TcpStream, ToSocketAddrs},
-	sync::mpsc::{self, Receiver, Sender},
+	sync::{
+		Arc,
+		atomic::{AtomicBool, Ordering},
+		mpsc::{self, Receiver, Sender},
+	},
 	thread::{self, JoinHandle},
 	time::{Duration, Instant},
 };
@@ -28,7 +32,18 @@ pub enum StreamEvent {
 
 pub struct StreamHandle {
 	receiver: Receiver<StreamEvent>,
+	stop: Arc<AtomicBool>,
 	_thread: JoinHandle<()>,
+}
+
+impl Drop for StreamHandle {
+	fn drop(&mut self) {
+		// The thread only notices the receiver is gone when it next has an event to send, which a
+		// quiet stream (direct messages, a small list) may never have, while pings keep its socket
+		// alive. Without this, closing a timeline or switching accounts leaked the thread and its
+		// connection for the rest of the session.
+		self.stop.store(true, Ordering::Relaxed);
+	}
 }
 
 const CONNECT_TIMEOUT: Duration = Duration::from_secs(10);
@@ -69,10 +84,12 @@ pub fn start_streaming(
 	}
 	drop(query);
 	let (sender, receiver) = mpsc::channel();
+	let stop = Arc::new(AtomicBool::new(false));
+	let thread_stop = stop.clone();
 	let thread = thread::spawn(move || {
-		streaming_loop(&streaming_url, &timeline_type, &sender, &ui_waker);
+		streaming_loop(&streaming_url, &timeline_type, &sender, &ui_waker, &thread_stop);
 	});
-	Some(StreamHandle { receiver, _thread: thread })
+	Some(StreamHandle { receiver, stop, _thread: thread })
 }
 
 fn send_event(sender: &Sender<StreamEvent>, ui_waker: &UiWaker, event: StreamEvent) -> bool {
@@ -83,22 +100,36 @@ fn send_event(sender: &Sender<StreamEvent>, ui_waker: &UiWaker, event: StreamEve
 	true
 }
 
-fn streaming_loop(url: &Url, timeline_type: &TimelineType, sender: &Sender<StreamEvent>, ui_waker: &UiWaker) {
+fn streaming_loop(
+	url: &Url,
+	timeline_type: &TimelineType,
+	sender: &Sender<StreamEvent>,
+	ui_waker: &UiWaker,
+	stop: &AtomicBool,
+) {
 	let mut retry_count: u32 = 0;
 	let base_delay = Duration::from_secs(1);
 	let max_delay = Duration::from_secs(60);
 	loop {
-		if connect_and_stream(url, timeline_type, sender, ui_waker) == Ok(()) {
+		if connect_and_stream(url, timeline_type, sender, ui_waker, stop) == Ok(()) {
 			// Receiver dropped or intentional shutdown.
 			break;
 		}
 		retry_count += 1;
-		if !send_event(sender, ui_waker, StreamEvent::Disconnected(timeline_type.clone())) {
+		if stop.load(Ordering::Relaxed)
+			|| !send_event(sender, ui_waker, StreamEvent::Disconnected(timeline_type.clone()))
+		{
 			break;
 		}
 		let exp = retry_count.saturating_sub(1).min(6);
 		let delay = (base_delay * 2u32.pow(exp)).min(max_delay);
-		thread::sleep(delay);
+		let retry_at = Instant::now() + delay;
+		while Instant::now() < retry_at {
+			if stop.load(Ordering::Relaxed) {
+				return;
+			}
+			thread::sleep(Duration::from_millis(500).min(retry_at.saturating_duration_since(Instant::now())));
+		}
 	}
 }
 
@@ -107,6 +138,7 @@ fn connect_and_stream(
 	timeline_type: &TimelineType,
 	sender: &Sender<StreamEvent>,
 	ui_waker: &UiWaker,
+	stop: &AtomicBool,
 ) -> Result<(), String> {
 	let request = url.as_str().into_client_request().map_err(|e| format!("WebSocket request failed: {e}"))?;
 	let uri = request.uri().clone();
@@ -119,6 +151,10 @@ fn connect_and_stream(
 		return Ok(());
 	}
 	loop {
+		if stop.load(Ordering::Relaxed) {
+			let _ = socket.close(None);
+			return Ok(());
+		}
 		if last_ping_at.elapsed() >= HEARTBEAT_INTERVAL {
 			socket.send(Message::Ping(Vec::new().into())).map_err(|e| format!("WebSocket ping failed: {e}"))?;
 			last_ping_at = Instant::now();

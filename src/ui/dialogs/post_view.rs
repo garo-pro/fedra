@@ -4,6 +4,7 @@ use wxdragon::{
 	widgets::WebView,
 };
 
+use super::DestroyOnDrop;
 use crate::{ID_BOOST, ID_FAVORITE, ID_REPLY, UiCommand, mastodon::Status};
 
 fn strip_quote_html(html: &str) -> String {
@@ -55,6 +56,7 @@ fn strip_quote_html(html: &str) -> String {
 pub fn show_post_view_dialog(parent: &Frame, status: &Status) -> Option<UiCommand> {
 	let title = format!("Post by {}", status.account.display_name_or_username());
 	let dialog = Dialog::builder(parent, &title).with_size(600, 500).build();
+	let _destroy = DestroyOnDrop(dialog);
 	let panel = Panel::builder(&dialog).build();
 	let sizer = BoxSizer::builder(Orientation::Vertical).build();
 	let web_view = WebView::builder(&panel).build();

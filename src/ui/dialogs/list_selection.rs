@@ -1,9 +1,11 @@
 use wxdragon::prelude::*;
 
+use super::DestroyOnDrop;
 use crate::mastodon::List;
 
 pub fn show_list_selection_dialog(frame: &Frame, lists: &[List], title: &str, button_label: &str) -> Option<List> {
 	let dialog = Dialog::builder(frame, title).with_size(300, 400).build();
+	let _destroy = DestroyOnDrop(dialog);
 	let panel = Panel::builder(&dialog).build();
 	let main_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	let list_label = StaticText::builder(&panel).with_label("Select a list").build();
