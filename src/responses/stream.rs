@@ -148,6 +148,7 @@ pub fn process_stream_events(
 				}
 			}
 		}
+		timeline.trim_oldest();
 	}
 	if !mention_forwards.is_empty()
 		&& let Some(mentions_tl) = state.timeline_manager.get_mut(&TimelineType::Mentions)
@@ -159,6 +160,7 @@ pub fn process_stream_events(
 				mentions_tl.entries.insert(0, TimelineEntry::Notification(notif));
 			}
 		}
+		mentions_tl.trim_oldest();
 		if active_type.as_ref() == Some(&TimelineType::Mentions) {
 			active_needs_update = true;
 		}
