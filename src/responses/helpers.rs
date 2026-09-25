@@ -40,26 +40,31 @@ pub(super) fn refresh_own_user_timelines(state: &AppState) {
 }
 
 fn merge_status_snapshot_by_id(state: &mut AppState, status_id: &str, snapshot: &Status) -> bool {
-	let mut updated = false;
-	for timeline in state.timeline_manager.iter_mut() {
+	let active_index = state.timeline_manager.active_index();
+	let mut active_changed = false;
+	for (index, timeline) in state.timeline_manager.iter_mut().enumerate() {
 		for entry in &mut timeline.entries {
 			if let Some(status) = entry.as_status_mut() {
 				if status.id == status_id {
 					*status = snapshot.clone();
-					updated = true;
+					active_changed |= index == active_index;
 				}
 				if let Some(ref mut reblog) = status.reblog
 					&& reblog.id == status_id
 				{
 					**reblog = snapshot.clone();
-					updated = true;
+					active_changed |= index == active_index;
 				}
 			}
 		}
 	}
-	updated
+	active_changed
 }
 
+/// Folds a freshly fetched copy of a post into every timeline that shows it, and returns whether
+/// the active timeline was one of them, i.e. whether it needs redrawing. A post always matches
+/// the timeline it was just added to, so returning true for any match made every streamed post,
+/// even one for a background timeline, re-render the whole active timeline.
 pub(super) fn merge_status_snapshot(state: &mut AppState, snapshot: &Status) -> bool {
 	let mut updated = merge_status_snapshot_by_id(state, &snapshot.id, snapshot);
 	if let Some(reblog) = &snapshot.reblog {
