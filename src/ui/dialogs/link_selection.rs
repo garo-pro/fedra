@@ -1,9 +1,11 @@
 use wxdragon::prelude::*;
 
+use super::DestroyOnDrop;
 use crate::html::Link;
 
 pub fn show_link_selection_dialog(frame: &Frame, links: &[Link]) -> Option<String> {
 	let dialog = Dialog::builder(frame, "Select Link").with_size(500, 300).build();
+	let _destroy = DestroyOnDrop(dialog);
 	let panel = Panel::builder(&dialog).build();
 	let main_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	let list_label = StaticText::builder(&panel).with_label("Links found in post:").build();

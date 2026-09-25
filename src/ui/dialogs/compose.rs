@@ -3,7 +3,7 @@ use std::{cell::RefCell, path::Path, rc::Rc};
 use chrono::{DateTime, Local, LocalResult, NaiveDate, NaiveTime, SecondsFormat, TimeZone, Utc};
 use wxdragon::{event::KeyboardEvent, prelude::*};
 
-use super::common::show_warning;
+use super::{DestroyOnDrop, common::show_warning};
 use crate::{
 	config::ContentWarningDisplay,
 	mastodon::{PollLimits, Status},
@@ -141,6 +141,7 @@ fn prompt_for_poll(
 		(604_800, "7 days"),
 	];
 	let dialog = Dialog::builder(parent, "Manage Poll").with_size(520, 420).build();
+	let _destroy = DestroyOnDrop(dialog);
 	let panel = Panel::builder(&dialog).build();
 	let main_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	let list_label = StaticText::builder(&panel).with_label("Options:").build();
@@ -385,6 +386,7 @@ fn prompt_for_media(
 	initial_sensitive: bool,
 ) -> Option<(Vec<PostMedia>, bool)> {
 	let dialog = Dialog::builder(parent, "Manage Media").with_size(520, 360).build();
+	let _destroy = DestroyOnDrop(dialog);
 	let panel = Panel::builder(&dialog).build();
 	let main_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	let list_label = StaticText::builder(&panel).with_label("Attachments:").build();
@@ -555,6 +557,7 @@ fn prompt_for_media(
 
 pub fn prompt_for_vote(frame: &Frame, poll: &crate::mastodon::Poll, post_text: &str) -> Option<Vec<usize>> {
 	let dialog = Dialog::builder(frame, "Vote").with_size(400, 500).build();
+	let _destroy = DestroyOnDrop(dialog);
 	let panel = Panel::builder(&dialog).build();
 	let main_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	let post_display = TextCtrl::builder(&panel)
@@ -689,6 +692,7 @@ fn parse_schedule_inputs(date_value: &str, time_value: &str) -> Option<DateTime<
 fn prompt_for_schedule(parent: &dyn WxWidget, current: Option<&str>) -> Option<Option<String>> {
 	const ID_CLEAR_SCHEDULE: i32 = 24_001;
 	let dialog = Dialog::builder(parent, "Schedule Post").with_size(360, 210).build();
+	let _destroy = DestroyOnDrop(dialog);
 	let panel = Panel::builder(&dialog).build();
 	let main_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	let date_label = StaticText::builder(&panel).with_label("Date (YYYY-MM-DD):").build();
@@ -777,6 +781,7 @@ pub fn prompt_for_compose(
 	let default_visibility = config.default_visibility;
 	let dialog =
 		Dialog::builder(frame, &format!("{title_prefix} - 0 of {max_chars} characters")).with_size(700, 560).build();
+	let _destroy = DestroyOnDrop(dialog);
 	let panel = Panel::builder(&dialog).build();
 	let main_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	if let Some(quoted_text) = config.quoted_text.clone() {

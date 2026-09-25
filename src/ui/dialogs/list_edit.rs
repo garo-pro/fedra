@@ -1,5 +1,7 @@
 use wxdragon::prelude::*;
 
+use super::DestroyOnDrop;
+
 pub fn show_list_edit_dialog(
 	parent: &dyn WxWidget,
 	initial_title: Option<&str>,
@@ -8,6 +10,7 @@ pub fn show_list_edit_dialog(
 ) -> Option<(String, String, bool)> {
 	let title_str = if initial_title.is_some() { "Edit List" } else { "Create List" };
 	let dialog = Dialog::builder(parent, title_str).with_size(400, 250).build();
+	let _destroy = DestroyOnDrop(dialog);
 	let panel = Panel::builder(&dialog).build();
 	let main_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	let title_label = StaticText::builder(&panel).with_label("List Title:").build();

@@ -2,6 +2,7 @@ use std::{cell::RefCell, rc::Rc};
 
 use wxdragon::prelude::*;
 
+use super::DestroyOnDrop;
 use crate::{
 	mastodon::{Filter, FilterAction, FilterContext},
 	ui::keys,
@@ -17,6 +18,7 @@ pub enum ManageFiltersResult {
 
 pub fn prompt_manage_filters(frame: &Frame, filters: &[Filter]) -> ManageFiltersResult {
 	let dialog = Dialog::builder(frame, "Filter Manager").with_size(400, 350).build();
+	let _destroy = DestroyOnDrop(dialog);
 	let panel = Panel::builder(&dialog).build();
 	let main_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	let filters_label = StaticText::builder(&panel).with_label("Filters:").build();
@@ -127,6 +129,7 @@ fn prompt_keyword_edit(
 ) -> Option<(String, bool)> {
 	let title = if initial_keyword.is_some() { "Edit Keyword" } else { "Add Keyword" };
 	let dialog = Dialog::builder(parent, title).with_size(400, 200).build();
+	let _destroy = DestroyOnDrop(dialog);
 	let panel = Panel::builder(&dialog).build();
 	let main_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	let keyword_label = StaticText::builder(&panel).with_label("Keyword:").build();
@@ -183,6 +186,7 @@ fn prompt_keyword_edit(
 pub fn prompt_filter_edit(frame: &Frame, existing: Option<&Filter>) -> Option<FilterDialogResult> {
 	let title = if existing.is_some() { "Edit Filter" } else { "Add Filter" };
 	let dialog = Dialog::builder(frame, title).with_size(500, 600).build();
+	let _destroy = DestroyOnDrop(dialog);
 	let panel = Panel::builder(&dialog).build();
 	let main_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	let title_label = StaticText::builder(&panel).with_label("Filter Title:").build();

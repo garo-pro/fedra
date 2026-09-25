@@ -2,6 +2,7 @@ use std::{cell::RefCell, rc::Rc, sync::mpsc::Sender};
 
 use wxdragon::prelude::*;
 
+use super::destroy_on_close;
 use crate::{network::NetworkCommand, ui::dialogs::show_list_edit_dialog};
 
 #[derive(Clone)]
@@ -125,10 +126,7 @@ impl ManageListsDialog {
 		close_button.on_click(move |_| {
 			dlg_close.close(true);
 		});
-		let on_close_win = on_close;
-		handle.dialog.on_close(move |_| {
-			on_close_win();
-		});
+		destroy_on_close(handle.dialog, on_close);
 		handle
 	}
 

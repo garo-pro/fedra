@@ -2,7 +2,7 @@ use std::{cell::RefCell, rc::Rc, sync::mpsc::Sender};
 
 use wxdragon::prelude::*;
 
-use super::user_actions;
+use super::{DestroyOnDrop, destroy_on_close, user_actions};
 use crate::{
 	mastodon::{Account as MastodonAccount, Mention, Tag},
 	network::NetworkCommand,
@@ -81,10 +81,7 @@ impl ProfileDialog {
 		close_button.on_click(move |_| {
 			dlg_close.close(true);
 		});
-		let on_close_win = on_close;
-		dialog.on_close(move |_| {
-			on_close_win();
-		});
+		destroy_on_close(dialog, on_close);
 		dialog.centre();
 		Self { dialog, relationship, profile_text, account: account_rc, is_own_account }
 	}
@@ -122,6 +119,7 @@ pub fn prompt_for_mentions(
 ) -> Option<(Mention, UserLookupAction)> {
 	const ID_VIEW_TIMELINE: i32 = 10041;
 	let dialog = Dialog::builder(frame, "Mentions").with_size(500, 300).build();
+	let _destroy = DestroyOnDrop(dialog);
 	let panel = Panel::builder(&dialog).build();
 	let main_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	let list_label = StaticText::builder(&panel).with_label("Users mentioned in post:").build();
@@ -172,6 +170,7 @@ pub fn prompt_for_account_list(
 ) -> Option<(MastodonAccount, UserLookupAction)> {
 	const ID_VIEW_TIMELINE: i32 = 10043;
 	let dialog = Dialog::builder(frame, title).with_size(500, 300).build();
+	let _destroy = DestroyOnDrop(dialog);
 	let panel = Panel::builder(&dialog).build();
 	let main_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	let list_label = StaticText::builder(&panel).with_label(label).build();
@@ -224,6 +223,7 @@ pub fn prompt_for_account_selection(
 ) -> Option<(MastodonAccount, UserLookupAction)> {
 	const ID_VIEW_TIMELINE: i32 = 10042;
 	let dialog = Dialog::builder(frame, "Select User").with_size(400, 150).build();
+	let _destroy = DestroyOnDrop(dialog);
 	let panel = Panel::builder(&dialog).build();
 	let main_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	let list_label = StaticText::builder(&panel).with_label("User:").build();
@@ -268,6 +268,7 @@ pub fn prompt_for_account_choice(
 	labels: &[&str],
 ) -> Option<MastodonAccount> {
 	let dialog = Dialog::builder(parent, "Select User").with_size(400, 150).build();
+	let _destroy = DestroyOnDrop(dialog);
 	let panel = Panel::builder(&dialog).build();
 	let main_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	let list_label = StaticText::builder(&panel).with_label("User:").build();
@@ -451,10 +452,7 @@ impl HashtagDialog {
 		close_button.on_click(move |_| {
 			dlg.close(true);
 		});
-		let on_close_win = on_close;
-		dialog.on_close(move |_| {
-			on_close_win();
-		});
+		destroy_on_close(dialog, on_close);
 		handle
 	}
 

@@ -2,7 +2,7 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc, sync::mpsc::Sender};
 
 use wxdragon::{event::MenuEvents, prelude::*};
 
-use super::user_actions;
+use super::{destroy_on_close, user_actions};
 use crate::{
 	mastodon::{Account, Relationship},
 	network::NetworkCommand,
@@ -289,9 +289,7 @@ impl FollowListDialog {
 		close_button.on_click(move |_| {
 			dlg_close.close(true);
 		});
-		dialog.on_close(move |_| {
-			on_close();
-		});
+		destroy_on_close(dialog, on_close);
 		dialog.centre();
 		Self {
 			dialog,

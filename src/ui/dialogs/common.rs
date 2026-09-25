@@ -9,6 +9,30 @@ pub enum UserLookupAction {
 	Timeline,
 }
 
+/// Destroys a dialog when dropped.
+///
+/// wxDragon's `Dialog` has no `Drop`, and wxWidgets only hides a dialog when `show_modal` returns,
+/// so a dialog nobody destroys keeps its window, its controls and every closure bound to them
+/// alive until Fedra exits. Bind one right after building a modal dialog: it outlives the reads of
+/// the controls' values and runs on every return path.
+pub struct DestroyOnDrop(pub Dialog);
+
+impl Drop for DestroyOnDrop {
+	fn drop(&mut self) {
+		self.0.destroy();
+	}
+}
+
+/// Makes closing a modeless dialog destroy it once `on_close` has run. The default close handler
+/// only hides a modeless dialog, which would keep it alive until Fedra exits.
+pub fn destroy_on_close(dialog: Dialog, on_close: impl Fn() + 'static) {
+	dialog.on_close(move |event| {
+		on_close();
+		dialog.destroy();
+		event.skip(false);
+	});
+}
+
 pub fn prompt_for_user_lookup(
 	frame: &Frame,
 	suggestions: &[String],
@@ -16,6 +40,7 @@ pub fn prompt_for_user_lookup(
 ) -> Option<(String, UserLookupAction)> {
 	const ID_VIEW_TIMELINE: i32 = 10040;
 	let dialog = Dialog::builder(frame, "Open User").with_size(420, 180).build();
+	let _destroy = DestroyOnDrop(dialog);
 	let panel = Panel::builder(&dialog).build();
 	let main_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	let prompt_label = StaticText::builder(&panel).with_label("Username:").build();
@@ -78,6 +103,7 @@ pub use wx_utils::show_warning;
 
 pub fn prompt_for_search(frame: &Frame) -> Option<(String, SearchType)> {
 	let dialog = Dialog::builder(frame, "Search").with_size(420, 200).build();
+	let _destroy = DestroyOnDrop(dialog);
 	let panel = Panel::builder(&dialog).build();
 	let main_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	let query_label = StaticText::builder(&panel).with_label("Search query:").build();
@@ -140,6 +166,7 @@ pub fn prompt_for_search(frame: &Frame) -> Option<(String, SearchType)> {
 
 pub fn prompt_for_account_search(parent: &dyn WxWidget) -> Option<String> {
 	let dialog = Dialog::builder(parent, "Search Accounts").with_size(420, 150).build();
+	let _destroy = DestroyOnDrop(dialog);
 	let panel = Panel::builder(&dialog).build();
 	let main_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	let query_label = StaticText::builder(&panel).with_label("Search accounts:").build();
