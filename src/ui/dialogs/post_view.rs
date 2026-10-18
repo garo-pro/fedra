@@ -248,6 +248,8 @@ pub fn show_post_view_dialog(parent: &Frame, status: &Status) -> Option<UiComman
 		content
 	);
 	web_view.set_page(&html, "");
+	// The reused dialog restores focus to whichever button closed it last.
+	web_view.set_focus();
 	let result = dialog.show_modal();
 	match result {
 		ID_REPLY => Some(UiCommand::Reply { reply_all: true }),
